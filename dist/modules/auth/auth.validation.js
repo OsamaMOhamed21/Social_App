@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signup = exports.login = void 0;
+exports.confirmEmail = exports.signup = exports.login = void 0;
 const zod_1 = require("zod");
 const validation_middleware_1 = require("../../middleware/validation.middleware");
 exports.login = {
@@ -32,5 +32,11 @@ exports.signup = {
                 message: "username must consist of 2 parts like ex: OSAMA MOHAMED",
             });
         }
+    }),
+};
+exports.confirmEmail = {
+    body: zod_1.z.strictObject({
+        email: validation_middleware_1.generalFields.email,
+        otp: validation_middleware_1.generalFields.otp,
     }),
 };

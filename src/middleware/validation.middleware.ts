@@ -15,7 +15,6 @@ type ValidationErrorType = Array<{
 
 export const validation = (schema: SchemaType) => {
   return (req: Request, res: Response, next: NextFunction): NextFunction => {
-
     const validationError: ValidationErrorType = [];
     for (const key of Object.keys(schema) as KeyReqType[]) {
       if (!schema[key]) continue;
@@ -49,4 +48,5 @@ export const generalFields = {
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,16}$/
     ),
   confirmPassword: z.string(),
+  otp: z.string().regex(/^\d{6}$/),
 };

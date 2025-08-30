@@ -33,3 +33,10 @@ export const signup = {
       }
     }),
 };
+
+export const confirmEmail = {
+  body: z.strictObject({
+    email: generalFields.email,
+    otp: generalFields.otp,
+  }),
+};

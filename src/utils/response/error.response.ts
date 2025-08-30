@@ -28,7 +28,7 @@ export class NotFoundRequestException extends ApplicationException {
   }
 }
 
-export class configException extends ApplicationException {
+export class conflictException extends ApplicationException {
   constructor(message: string, cause?: unknown) {
     super(message, 409, cause);
   }
