@@ -44,4 +44,5 @@ const router = (0, express_1.Router)();
 router.post("/signup", (0, validation_middleware_1.validation)(validators.signup), auth_service_1.default.signup);
 router.patch("/confirm-email", (0, validation_middleware_1.validation)(validators.confirmEmail), auth_service_1.default.confirmEmail);
 router.post("/login", (0, validation_middleware_1.validation)(validators.login), auth_service_1.default.login);
+router.post("/signup-gmail", (0, validation_middleware_1.validation)(validators.signupWithGoogle), auth_service_1.default.signupWithGoogle);
 exports.default = router;

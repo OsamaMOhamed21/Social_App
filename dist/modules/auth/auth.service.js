@@ -7,9 +7,30 @@ const email_event_1 = require("../../utils/event/email.event");
 const otp_1 = require("../../utils/otp");
 const hash_security_1 = require("../../utils/security/hash.security");
 const token_security_1 = require("../../utils/security/token.security");
+const google_auth_library_1 = require("google-auth-library");
 class AuthenticationService {
     userModel = new user_repository_1.userRepository(user_model_1.UserModel);
     constructor() { }
+    async verifyGmailAccount(idToken) {
+        const client = new google_auth_library_1.OAuth2Client();
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience: process.env.WEB_CLIENT_ID?.split(",") || [],
+        });
+        const payload = ticket.getPayload();
+        if (!payload?.email_verified) {
+            throw new error_response_1.BadRequestException("Fail To Verify This Google Account");
+        }
+        return payload;
+    }
+    signupWithGoogle = async (req, res) => {
+        cont;
+        {
+            idToken;
+        }
+        IGmailDTO = req.body;
+        return res.status(201).json({ message: "Done" });
+    };
     signup = async (req, res) => {
         const { username, email, password } = req.body;
         console.log({ username, email, password });

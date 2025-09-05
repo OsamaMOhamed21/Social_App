@@ -49,4 +49,5 @@ export const generalFields = {
     ),
   confirmPassword: z.string(),
   otp: z.string().regex(/^\d{6}$/),
+  idToken: z.string(),
 };

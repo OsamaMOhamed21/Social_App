@@ -40,3 +40,9 @@ export const confirmEmail = {
     otp: generalFields.otp,
   }),
 };
+
+export const signupWithGmail = {
+  body: z.strictObject({
+    idToken: generalFields.idToken,
+  }),
+};

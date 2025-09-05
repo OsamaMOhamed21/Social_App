@@ -1,6 +1,11 @@
 import type { Request, Response } from "express";
-import type { IConfirmEmailDTO, ILoginDTO, ISignupDTO } from "./auth.dto";
-import { UserModel } from "../../DB/model/user.model";
+import type {
+  IConfirmEmailDTO,
+  IGmailDTO,
+  ILoginDTO,
+  ISignupDTO,
+} from "./auth.dto";
+import { ProviderEnum, UserModel } from "../../DB/model/user.model";
 import { userRepository } from "../../DB/repository/user.repository";
 import {
   BadRequestException,
@@ -10,12 +15,90 @@ import {
 import { emailEvent } from "../../utils/event/email.event";
 import { generateOtp } from "../../utils/otp";
 import { compareHash, generateHash } from "../../utils/security/hash.security";
-import {
-  createLoginCredentials
-} from "../../utils/security/token.security";
+import { createLoginCredentials } from "../../utils/security/token.security";
+import { OAuth2Client, type TokenPayload } from "google-auth-library";
+
 class AuthenticationService {
   private userModel = new userRepository(UserModel);
   constructor() {}
+
+  private async verifyGmailAccount(idToken: string): Promise<TokenPayload> {
+    const client = new OAuth2Client();
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.WEB_CLIENT_IDS?.split(",") || [],
+    });
+    const payload = ticket.getPayload();
+    if (!payload?.email_verified) {
+      throw new BadRequestException("fail to verify this google account");
+    }
+    return payload;
+  }
+
+  loginWithGmail = async (req: Request, res: Response): Promise<Response> => {
+    const { idToken }: IGmailDTO = req.body;
+    const { email } = await this.verifyGmailAccount(idToken);
+
+    const user = await this.userModel.findOne({
+      filter: {
+        email,
+        provider: ProviderEnum.GOOGLE,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        "Not Register Account Or Registered With Another Provider"
+      );
+    }
+
+    const Credentials = await createLoginCredentials(user);
+
+    return res.status(201).json({ message: "Done", Credentials });
+  };
+  signupWithGmail = async (req: Request, res: Response): Promise<Response> => {
+    const { idToken }: IGmailDTO = req.body;
+    const { email, family_name, given_name, picture } =
+      await this.verifyGmailAccount(idToken);
+
+    const user = await this.userModel.findOne({
+      filter: {
+        email,
+      },
+    });
+
+    if (user) {
+      if (user.provider === ProviderEnum.GOOGLE) {
+        return await this.loginWithGmail(req, res);
+      }
+      throw new conflictException(
+        `Email exists with another provider ::: ${user.provider}`
+      );
+    }
+
+    const [newUser] =
+      (await this.userModel.create({
+        data: [
+          {
+            firstName: given_name as string,
+            lastName: family_name as string,
+            profileImage: picture as string,
+            confirmAt: new Date(),
+          },
+        ],
+      })) || [];
+
+    if (!newUser) {
+      throw new BadRequestException(
+        "Fail To Signup With Gmail Please Try Again Later"
+      );
+    }
+
+    const Credentials = await createLoginCredentials(newUser);
+
+    return res.status(201).json({ message: "Done", Credentials });
+  };
+
   /**
    *
    * @param req - Express.Request

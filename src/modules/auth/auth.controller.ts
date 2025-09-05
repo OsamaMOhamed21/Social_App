@@ -11,5 +11,15 @@ router.patch(
   authService.confirmEmail
 );
 router.post("/login", validation(validators.login), authService.login);
+router.post(
+  "/signup-gmail",
+  validation(validators.signupWithGmail),
+  authService.signupWithGmail
+);
+router.post(
+  "/login-gmail",
+  validation(validators.signupWithGmail),
+  authService.loginWithGmail
+);
 
 export default router;
