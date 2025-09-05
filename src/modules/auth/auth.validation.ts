@@ -46,3 +46,9 @@ export const signupWithGmail = {
     idToken: generalFields.idToken,
   }),
 };
+
+export const sendForgotPasswordCode = {
+  body: z.strictObject({
+    email: generalFields.email,
+  }),
+};

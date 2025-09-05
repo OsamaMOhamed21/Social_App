@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import type {
   IConfirmEmailDTO,
+  IForgotCodeDTO,
   IGmailDTO,
   ILoginDTO,
   ISignupDTO,
@@ -191,6 +192,40 @@ class AuthenticationService {
         $unset: { confirmEmailOtp: 1 },
       },
     });
+    return res.json({ message: "Done" });
+  };
+
+  sendForgotCode = async (req: Request, res: Response): Promise<Response> => {
+    const { email }: IForgotCodeDTO = req.body;
+
+    const user = await this.userModel.findOne({
+      filter: {
+        email,
+        provider: ProviderEnum.SYSTEM,
+        confirmAt: { $exists: true },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundRequestException(
+        "Invalid Account Due To One Of The Following"
+      );
+    }
+
+    const otp = generateOtp();
+    const result = await this.userModel.updateOne({
+      filter: { email },
+      update: {
+        resetPasswordOtp: await generateHash(String(otp)),
+      },
+    });
+    if (!result) {
+      throw new BadRequestException(
+        "Fail To Send The Reset Code Please Try Again Later"
+      );
+    }
+
+    emailEvent.emit("resetPassword", { to: email, otp });
     return res.json({ message: "Done" });
   };
 }
