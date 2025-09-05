@@ -1,6 +1,6 @@
 //? setup ENV
 import { config } from "dotenv";
-import {resolve} from "node:path"
+import { resolve } from "node:path";
 config({ path: resolve("./config/.env.development") });
 // config({});
 
@@ -15,6 +15,7 @@ import { rateLimit } from "express-rate-limit";
 
 //? import module routing
 import authController from "./modules/auth/auth.controller";
+import userController from "./modules/user/user.controller";
 import { globalErrorHandling } from "./utils/response/error.response";
 import connectDB from "./DB/connections.db";
 
@@ -43,6 +44,7 @@ const bootStrap = async (): Promise<void> => {
 
   //* sub-app-routeing-modules
   app.use("/auth", authController);
+  app.use("/user", userController);
 
   //* in-valid-routing
   app.use("{/*dummy}", (req: Request, res: Response) => {

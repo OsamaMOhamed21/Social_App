@@ -8,7 +8,7 @@ const user_repository_1 = require("../../DB/repository/user.repository");
 var signatureLevelEnum;
 (function (signatureLevelEnum) {
     signatureLevelEnum["bearer"] = "Bearer";
-    signatureLevelEnum["admin"] = "Admin";
+    signatureLevelEnum["system"] = "System";
 })(signatureLevelEnum || (exports.signatureLevelEnum = signatureLevelEnum = {}));
 var TokenEnum;
 (function (TokenEnum) {
@@ -29,7 +29,7 @@ const detectSignature = async (role = user_model_1.RoleEnum.user) => {
     let signatureLevel = signatureLevelEnum.bearer;
     switch (role) {
         case user_model_1.RoleEnum.admin:
-            signatureLevel = signatureLevelEnum.admin;
+            signatureLevel = signatureLevelEnum.system;
             break;
         default:
             signatureLevel = signatureLevelEnum.bearer;
@@ -44,7 +44,7 @@ const getSignature = async (signatureLevel = signatureLevelEnum.bearer) => {
         refresh_signature: "",
     };
     switch (signatureLevel) {
-        case signatureLevelEnum.admin:
+        case signatureLevelEnum.system:
             signatures.access_signature = process.env
                 .ACCESS_SYSTEM_TOKEN_SIGNATURE;
             signatures.refresh_signature = process.env

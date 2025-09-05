@@ -13,7 +13,7 @@ import { userRepository } from "../../DB/repository/user.repository";
 
 export enum signatureLevelEnum {
   bearer = "Bearer",
-  admin = "Admin",
+  system = "System",
 }
 
 export enum TokenEnum {
@@ -51,7 +51,7 @@ export const detectSignature = async (
   let signatureLevel: signatureLevelEnum = signatureLevelEnum.bearer;
   switch (role) {
     case RoleEnum.admin:
-      signatureLevel = signatureLevelEnum.admin;
+      signatureLevel = signatureLevelEnum.system;
       break;
     default:
       signatureLevel = signatureLevelEnum.bearer;
@@ -68,7 +68,7 @@ export const getSignature = async (
     refresh_signature: "",
   };
   switch (signatureLevel) {
-    case signatureLevelEnum.admin:
+    case signatureLevelEnum.system:
       signatures.access_signature = process.env
         .ACCESS_SYSTEM_TOKEN_SIGNATURE as string;
       signatures.refresh_signature = process.env

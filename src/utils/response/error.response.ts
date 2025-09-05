@@ -28,6 +28,12 @@ export class UnauthorizedException extends ApplicationException {
   }
 }
 
+export class ForbiddenException extends ApplicationException {
+  constructor(message: string, cause?: unknown) {
+    super(message, 403, cause);
+  }
+}
+
 export class NotFoundRequestException extends ApplicationException {
   constructor(message: string, cause?: unknown) {
     super(message, 404, cause);
