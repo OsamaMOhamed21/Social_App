@@ -1,14 +1,18 @@
 import type { Request, Response } from "express";
-import type { IConfirmEmail, ISignupDTO } from "./auth.dto";
+import type { IConfirmEmailDTO, ILoginDTO, ISignupDTO } from "./auth.dto";
 import { UserModel } from "../../DB/model/user.model";
 import { userRepository } from "../../DB/repository/user.repository";
 import {
   BadRequestException,
   conflictException,
+  NotFoundRequestException,
 } from "../../utils/response/error.response";
 import { emailEvent } from "../../utils/event/email.event";
 import { generateOtp } from "../../utils/otp";
 import { compareHash, generateHash } from "../../utils/security/hash.security";
+import {
+  createLoginCredentials
+} from "../../utils/security/token.security";
 class AuthenticationService {
   private userModel = new userRepository(UserModel);
   constructor() {}
@@ -53,12 +57,33 @@ class AuthenticationService {
     return res.status(201).json({ message: "Done", data: { user } });
   };
 
-  login = (req: Request, res: Response): Response => {
-    return res.json({ message: "Done", data: req.body });
+  login = async (req: Request, res: Response): Promise<Response> => {
+    const { email, password }: ILoginDTO = req.body;
+
+    const user = await this.userModel.findOne({
+      filter: { email },
+    });
+    if (!user) {
+      throw new NotFoundRequestException("In-valid Login Data");
+    }
+
+    if (!user.confirmAt) {
+      throw new BadRequestException("Verify your account first");
+    }
+
+    if (!(await compareHash(password, user.password))) {
+      throw new NotFoundRequestException("In-valid Login Data");
+    }
+
+    const Credentials = await createLoginCredentials(user);
+    return res.json({
+      message: "Done",
+      data: { Credentials },
+    });
   };
 
   confirmEmail = async (req: Request, res: Response): Promise<Response> => {
-    const { email, otp }: IConfirmEmail = req.body;
+    const { email, otp }: IConfirmEmailDTO = req.body;
 
     const user = await this.userModel.findOne({
       filter: {

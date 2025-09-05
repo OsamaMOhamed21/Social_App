@@ -22,6 +22,12 @@ export class BadRequestException extends ApplicationException {
   }
 }
 
+export class UnauthorizedException extends ApplicationException {
+  constructor(message: string, cause?: unknown) {
+    super(message, 401, cause);
+  }
+}
+
 export class NotFoundRequestException extends ApplicationException {
   constructor(message: string, cause?: unknown) {
     super(message, 404, cause);

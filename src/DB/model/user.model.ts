@@ -1,4 +1,4 @@
-import { model, models, Schema, Types } from "mongoose";
+import { HydratedDocument, model, models, Schema, Types } from "mongoose";
 
 export enum GenderEnum {
   male = "male",
@@ -7,7 +7,7 @@ export enum GenderEnum {
 
 export enum RoleEnum {
   user = "user",
-  system = "system",
+  admin = "admin",
 }
 
 export interface IUser {
@@ -72,3 +72,4 @@ userSchema
   });
 
 export const UserModel = models.User || model<IUser>("User", userSchema);
+export type HUserDocument = HydratedDocument<IUser>;

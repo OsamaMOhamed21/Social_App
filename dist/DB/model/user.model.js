@@ -10,7 +10,7 @@ var GenderEnum;
 var RoleEnum;
 (function (RoleEnum) {
     RoleEnum["user"] = "user";
-    RoleEnum["system"] = "system";
+    RoleEnum["admin"] = "admin";
 })(RoleEnum || (exports.RoleEnum = RoleEnum = {}));
 const userSchema = new mongoose_1.Schema({
     firstName: { type: String, required: true, minLength: 2, maxLength: 25 },
