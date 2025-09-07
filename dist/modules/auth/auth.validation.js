@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signupWithGoogle = exports.confirmEmail = exports.signup = exports.login = void 0;
+exports.resetVerifyPassword = exports.verifyPasswordCode = exports.sendForgotPasswordCode = exports.signupWithGmail = exports.confirmEmail = exports.signup = exports.login = void 0;
 const zod_1 = require("zod");
 const validation_middleware_1 = require("../../middleware/validation.middleware");
 exports.login = {
@@ -40,8 +40,29 @@ exports.confirmEmail = {
         otp: validation_middleware_1.generalFields.otp,
     }),
 };
-exports.signupWithGoogle = {
+exports.signupWithGmail = {
     body: zod_1.z.strictObject({
-        idToken: zod_1.z.string,
+        idToken: validation_middleware_1.generalFields.idToken,
     }),
+};
+exports.sendForgotPasswordCode = {
+    body: zod_1.z.strictObject({
+        email: validation_middleware_1.generalFields.email,
+    }),
+};
+exports.verifyPasswordCode = {
+    body: exports.sendForgotPasswordCode.body.extend({
+        otp: validation_middleware_1.generalFields.otp,
+    }),
+};
+exports.resetVerifyPassword = {
+    body: exports.verifyPasswordCode.body
+        .extend({
+        otp: validation_middleware_1.generalFields.otp,
+        password: validation_middleware_1.generalFields.password,
+        confirmPassword: validation_middleware_1.generalFields.confirmPassword,
+    })
+        .refine((data) => {
+        return data.password === data.confirmPassword;
+    }, { message: "Password Mis Match Confirm Password" }),
 };

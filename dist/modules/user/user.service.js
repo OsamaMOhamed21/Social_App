@@ -3,11 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const user_model_1 = require("../../DB/model/user.model");
 const token_security_1 = require("../../utils/security/token.security");
 const user_repository_1 = require("../../DB/repository/user.repository");
-const token_repository_1 = require("../../DB/repository/token.repository");
-const token_model_1 = require("../../DB/model/token.model");
+const s3_config_1 = require("../../utils/multer/s3.config");
+const cloud_multer_1 = require("../../utils/multer/cloud.multer");
 class UserService {
     userModel = new user_repository_1.userRepository(user_model_1.UserModel);
-    tokenModel = new token_repository_1.TokenRepository(token_model_1.TokenModel);
     constructor() { }
     profile = async (req, res) => {
         return res.json({
@@ -15,6 +14,19 @@ class UserService {
             data: {
                 user: req.user?._id,
                 decoded: req.decoded?.iat,
+            },
+        });
+    };
+    profileImage = async (req, res) => {
+        const key = await (0, s3_config_1.uploadFile)({
+            storageApproach: cloud_multer_1.StorageEnum.disk,
+            file: req.file,
+            path: `users/${req.decoded?._id}`,
+        });
+        return res.json({
+            message: "Done",
+            data: {
+                key,
             },
         });
     };

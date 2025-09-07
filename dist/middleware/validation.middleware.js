@@ -35,4 +35,5 @@ exports.generalFields = {
         .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,16}$/),
     confirmPassword: zod_1.z.string(),
     otp: zod_1.z.string().regex(/^\d{6}$/),
+    idToken: zod_1.z.string(),
 };

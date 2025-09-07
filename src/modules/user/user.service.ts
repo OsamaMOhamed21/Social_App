@@ -8,13 +8,12 @@ import {
 } from "../../utils/security/token.security";
 import { userRepository } from "../../DB/repository/user.repository";
 import { ILogout } from "./user.dto";
-import { TokenRepository } from "../../DB/repository/token.repository";
-import { TokenModel } from "../../DB/model/token.model";
+import { uploadFile } from "../../utils/multer/s3.config";
 import { JwtPayload } from "jsonwebtoken";
+import { StorageEnum } from "../../utils/multer/cloud.multer";
 
 class UserService {
   private userModel = new userRepository(UserModel);
-  private tokenModel = new TokenRepository(TokenModel);
   constructor() {}
 
   profile = async (req: Request, res: Response): Promise<Response> => {
@@ -23,6 +22,20 @@ class UserService {
       data: {
         user: req.user?._id,
         decoded: req.decoded?.iat,
+      },
+    });
+  };
+
+  profileImage = async (req: Request, res: Response): Promise<Response> => {
+    const key = await uploadFile({
+      storageApproach:StorageEnum.disk,
+      file: req.file as Express.Multer.File,
+      path: `users/${req.decoded?._id}`,
+    });
+    return res.json({
+      message: "Done",
+      data: {
+        key,
       },
     });
   };

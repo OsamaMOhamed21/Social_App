@@ -4,7 +4,9 @@ import type {
   IForgotCodeDTO,
   IGmailDTO,
   ILoginDTO,
+  IResetVerifyCodeDTO,
   ISignupDTO,
+  IVerifyCodeDTO,
 } from "./auth.dto";
 import { ProviderEnum, UserModel } from "../../DB/model/user.model";
 import { userRepository } from "../../DB/repository/user.repository";
@@ -159,10 +161,10 @@ class AuthenticationService {
       throw new NotFoundRequestException("In-valid Login Data");
     }
 
-    const Credentials = await createLoginCredentials(user);
+    const credentials = await createLoginCredentials(user);
     return res.json({
       message: "Done",
-      data: { Credentials },
+      data: { credentials },
     });
   };
 
@@ -208,7 +210,7 @@ class AuthenticationService {
 
     if (!user) {
       throw new NotFoundRequestException(
-        "Invalid Account Due To One Of The Following"
+        "Invalid Account Due To One Of The Following [Not Register , Invalid Provider , Not Confirmed Account]"
       );
     }
 
@@ -219,7 +221,7 @@ class AuthenticationService {
         resetPasswordOtp: await generateHash(String(otp)),
       },
     });
-    if (!result) {
+    if (!result.matchedCount) {
       throw new BadRequestException(
         "Fail To Send The Reset Code Please Try Again Later"
       );
@@ -227,6 +229,72 @@ class AuthenticationService {
 
     emailEvent.emit("resetPassword", { to: email, otp });
     return res.json({ message: "Done" });
+  };
+
+  verifyPasswordCode = async (
+    req: Request,
+    res: Response
+  ): Promise<Response> => {
+    const { email, otp }: IVerifyCodeDTO = req.body;
+
+    const user = await this.userModel.findOne({
+      filter: {
+        email,
+        provider: ProviderEnum.SYSTEM,
+        resetPasswordOtp: { $exists: true },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundRequestException(
+        "Invalid Account Due To One Of The Following [Not Register , Invalid Provider , Not Confirmed Account , Missing ResetPasswordOtp]"
+      );
+    }
+
+    if (!(await compareHash(otp, user.resetPasswordOtp as string))) {
+      throw new conflictException("Invalid Otp");
+    }
+
+    return res.json({ message: "Done" });
+  };
+
+  resetVerifyPassword = async (
+    req: Request,
+    res: Response
+  ): Promise<Response> => {
+    const { email, otp, password }: IResetVerifyCodeDTO = req.body;
+
+    const user = await this.userModel.findOne({
+      filter: {
+        email,
+        provider: ProviderEnum.SYSTEM,
+        resetPasswordOtp: { $exists: true },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundRequestException(
+        "Invalid Account Due To One Of The Following [Not Register , Invalid Provider , Not Confirmed Account , Missing ResetPasswordOtp]"
+      );
+    }
+
+    if (!(await compareHash(otp, user.resetPasswordOtp as string))) {
+      throw new conflictException("Invalid Otp");
+    }
+
+    const result = await this.userModel.updateOne({
+      filter: { email },
+      update: {
+        password: await generateHash(password),
+        changeCredentialsTime: new Date(),
+        $unset: { resetPasswordOtp: 1 },
+      },
+    });
+    if (!result.matchedCount) {
+      throw new BadRequestException("Fail To Reset Account Password");
+    }
+
+    return res.json({ message: "Done", data: { result } });
   };
 }
 export default new AuthenticationService();
