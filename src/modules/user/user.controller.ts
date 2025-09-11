@@ -1,6 +1,9 @@
 import { Router } from "express";
 import userService from "./user.service";
-import { authentication } from "../../middleware/authentication.middleware";
+import {
+  authentication,
+  authorization,
+} from "../../middleware/authentication.middleware";
 import { validation } from "../../middleware/validation.middleware";
 import * as validator from "./user.validation";
 import { TokenEnum } from "../../utils/security/token.security";
@@ -9,17 +12,48 @@ import {
   fileValidation,
   StorageEnum,
 } from "../../utils/multer/cloud.multer";
+import { endPoint } from "./user.authorization";
 const router = Router();
 router.get("/", authentication(), userService.profile);
 
+router.delete(
+  "{/:userId}/freeze-account",
+  authentication(),
+  validation(validator.freezeAccount),
+  userService.freezeAccount
+);
+
 router.patch(
-  "/profile-image",
+  "/:userId/restore-account",
+  authorization(endPoint.restoreAccount),
+  validation(validator.restoreAccount),
+  userService.restoreAccount
+);
+
+router.patch(
+  "/:userId/restore-account",
+  authorization(endPoint.restoreAccount),
+  validation(validator.restoreAccount),
+  userService.restoreAccount
+);
+
+router.delete(
+  "/:userId",
+  authorization(endPoint.hardDeleteAccount),
+  validation(validator.hardDeleteAccount),
+  userService.hardDeleteAccount
+);
+
+router.patch("/profile-image", authentication(), userService.profileImage);
+
+router.patch(
+  "/profile-cover-image",
   authentication(),
   cloudFileUpload({
     validation: fileValidation.image,
     storageApproach: StorageEnum.disk,
-  }).single("image"),
-  userService.profileImage
+  }).array("images", 2),
+  userService.profileCoverImage
 );
 
 router.post(

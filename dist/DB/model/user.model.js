@@ -34,7 +34,12 @@ const userSchema = new mongoose_1.Schema({
     phone: { type: String },
     address: { type: String },
     profileImage: { type: String },
+    temProfileImage: { type: String },
     coverImage: [String],
+    freezeAt: Date,
+    freezeBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
+    restoreAt: Date,
+    restoreBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
     gender: { type: String, enum: GenderEnum, default: GenderEnum.male },
     role: { type: String, enum: RoleEnum, default: RoleEnum.user },
     provider: {

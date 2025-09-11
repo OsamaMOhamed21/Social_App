@@ -3,11 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const user_model_1 = require("../../DB/model/user.model");
 const user_repository_1 = require("../../DB/repository/user.repository");
 const error_response_1 = require("../../utils/response/error.response");
-const email_event_1 = require("../../utils/event/email.event");
+const email_event_1 = require("../../utils/email/email.event");
 const otp_1 = require("../../utils/otp");
 const hash_security_1 = require("../../utils/security/hash.security");
 const token_security_1 = require("../../utils/security/token.security");
 const google_auth_library_1 = require("google-auth-library");
+const success_response_1 = require("../../utils/response/success.response");
 class AuthenticationService {
     userModel = new user_repository_1.userRepository(user_model_1.UserModel);
     constructor() { }
@@ -35,8 +36,8 @@ class AuthenticationService {
         if (!user) {
             throw new error_response_1.BadRequestException("Not Register Account Or Registered With Another Provider");
         }
-        const Credentials = await (0, token_security_1.createLoginCredentials)(user);
-        return res.status(201).json({ message: "Done", Credentials });
+        const credentials = await (0, token_security_1.createLoginCredentials)(user);
+        return (0, success_response_1.successResponse)({ res, data: { credentials } });
     };
     signupWithGmail = async (req, res) => {
         const { idToken } = req.body;
@@ -65,12 +66,15 @@ class AuthenticationService {
         if (!newUser) {
             throw new error_response_1.BadRequestException("Fail To Signup With Gmail Please Try Again Later");
         }
-        const Credentials = await (0, token_security_1.createLoginCredentials)(newUser);
-        return res.status(201).json({ message: "Done", Credentials });
+        const credentials = await (0, token_security_1.createLoginCredentials)(newUser);
+        return (0, success_response_1.successResponse)({
+            res,
+            statusCode: 201,
+            data: { credentials },
+        });
     };
     signup = async (req, res) => {
         const { username, email, password } = req.body;
-        console.log({ username, email, password });
         const CheckEmailExits = await this.userModel.findOne({
             filter: { email },
             select: "email",
@@ -83,7 +87,7 @@ class AuthenticationService {
             throw new error_response_1.conflictException("email exits");
         }
         const otp = (0, otp_1.generateOtp)();
-        const user = await this.userModel.createUser({
+        await this.userModel.createUser({
             data: [
                 {
                     username,
@@ -94,7 +98,7 @@ class AuthenticationService {
             ],
         });
         email_event_1.emailEvent.emit("confirmEmail", { to: email, otp });
-        return res.status(201).json({ message: "Done", data: { user } });
+        return (0, success_response_1.successResponse)({ res, statusCode: 201 });
     };
     login = async (req, res) => {
         const { email, password } = req.body;
@@ -111,10 +115,7 @@ class AuthenticationService {
             throw new error_response_1.NotFoundRequestException("In-valid Login Data");
         }
         const credentials = await (0, token_security_1.createLoginCredentials)(user);
-        return res.json({
-            message: "Done",
-            data: { credentials },
-        });
+        return (0, success_response_1.successResponse)({ res, data: { credentials } });
     };
     confirmEmail = async (req, res) => {
         const { email, otp } = req.body;
@@ -138,7 +139,7 @@ class AuthenticationService {
                 $unset: { confirmEmailOtp: 1 },
             },
         });
-        return res.json({ message: "Done" });
+        return (0, success_response_1.successResponse)({ res });
     };
     sendForgotCode = async (req, res) => {
         const { email } = req.body;
@@ -163,7 +164,7 @@ class AuthenticationService {
             throw new error_response_1.BadRequestException("Fail To Send The Reset Code Please Try Again Later");
         }
         email_event_1.emailEvent.emit("resetPassword", { to: email, otp });
-        return res.json({ message: "Done" });
+        return (0, success_response_1.successResponse)({ res });
     };
     verifyPasswordCode = async (req, res) => {
         const { email, otp } = req.body;
@@ -180,7 +181,7 @@ class AuthenticationService {
         if (!(await (0, hash_security_1.compareHash)(otp, user.resetPasswordOtp))) {
             throw new error_response_1.conflictException("Invalid Otp");
         }
-        return res.json({ message: "Done" });
+        return (0, success_response_1.successResponse)({ res });
     };
     resetVerifyPassword = async (req, res) => {
         const { email, otp, password } = req.body;
@@ -208,7 +209,7 @@ class AuthenticationService {
         if (!result.matchedCount) {
             throw new error_response_1.BadRequestException("Fail To Reset Account Password");
         }
-        return res.json({ message: "Done", data: { result } });
+        return (0, success_response_1.successResponse)({ res, data: { result } });
     };
 }
 exports.default = new AuthenticationService();

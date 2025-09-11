@@ -1,4 +1,9 @@
-import { MongooseUpdateQueryOptions, UpdateWriteOpResult } from "mongoose";
+import {
+  DeleteResult,
+  MongooseUpdateQueryOptions,
+  Types,
+  UpdateWriteOpResult,
+} from "mongoose";
 import {
   CreateOptions,
   FlattenMaps,
@@ -57,5 +62,29 @@ export abstract class DatabaseRepository<TDocument> {
       { ...update, $inc: { __v: 1 } },
       options
     );
+  }
+
+  async findByIdAndUpdate({
+    id,
+    update,
+    options = { new: true },
+  }: {
+    id: Types.ObjectId;
+    update?: UpdateQuery<TDocument>;
+    options?: QueryOptions<TDocument> | null;
+  }): Promise<Lean<TDocument> | HydratedDocument<TDocument> | null> {
+    return await this.model.findByIdAndUpdate(
+      id,
+      { ...update, $inc: { __v: 1 } },
+      options
+    );
+  }
+
+  async deleteOne({
+    filter,
+  }: {
+    filter: RootFilterQuery<TDocument>;
+  }): Promise<DeleteResult> {
+    return await this.model.deleteOne(filter);
   }
 }

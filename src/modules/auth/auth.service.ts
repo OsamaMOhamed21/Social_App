@@ -15,11 +15,13 @@ import {
   conflictException,
   NotFoundRequestException,
 } from "../../utils/response/error.response";
-import { emailEvent } from "../../utils/event/email.event";
+import { emailEvent } from "../../utils/email/email.event";
 import { generateOtp } from "../../utils/otp";
 import { compareHash, generateHash } from "../../utils/security/hash.security";
 import { createLoginCredentials } from "../../utils/security/token.security";
 import { OAuth2Client, type TokenPayload } from "google-auth-library";
+import { successResponse } from "../../utils/response/success.response";
+import { ILoginResponse } from "./auth.entities";
 
 class AuthenticationService {
   private userModel = new userRepository(UserModel);
@@ -55,9 +57,9 @@ class AuthenticationService {
       );
     }
 
-    const Credentials = await createLoginCredentials(user);
+    const credentials = await createLoginCredentials(user);
 
-    return res.status(201).json({ message: "Done", Credentials });
+    return successResponse<ILoginResponse>({ res, data: { credentials } });
   };
   signupWithGmail = async (req: Request, res: Response): Promise<Response> => {
     const { idToken }: IGmailDTO = req.body;
@@ -97,9 +99,13 @@ class AuthenticationService {
       );
     }
 
-    const Credentials = await createLoginCredentials(newUser);
+    const credentials = await createLoginCredentials(newUser);
 
-    return res.status(201).json({ message: "Done", Credentials });
+    return successResponse<ILoginResponse>({
+      res,
+      statusCode: 201,
+      data: { credentials },
+    });
   };
 
   /**
@@ -112,7 +118,6 @@ class AuthenticationService {
    */
   signup = async (req: Request, res: Response): Promise<Response> => {
     const { username, email, password }: ISignupDTO = req.body;
-    console.log({ username, email, password });
 
     const CheckEmailExits = await this.userModel.findOne({
       filter: { email },
@@ -128,7 +133,7 @@ class AuthenticationService {
 
     const otp = generateOtp();
 
-    const user = await this.userModel.createUser({
+    await this.userModel.createUser({
       data: [
         {
           username,
@@ -140,7 +145,7 @@ class AuthenticationService {
     });
 
     emailEvent.emit("confirmEmail", { to: email, otp });
-    return res.status(201).json({ message: "Done", data: { user } });
+    return successResponse({ res, statusCode: 201 });
   };
 
   login = async (req: Request, res: Response): Promise<Response> => {
@@ -162,10 +167,7 @@ class AuthenticationService {
     }
 
     const credentials = await createLoginCredentials(user);
-    return res.json({
-      message: "Done",
-      data: { credentials },
-    });
+    return successResponse<ILoginResponse>({ res, data: { credentials } });
   };
 
   confirmEmail = async (req: Request, res: Response): Promise<Response> => {
@@ -194,7 +196,7 @@ class AuthenticationService {
         $unset: { confirmEmailOtp: 1 },
       },
     });
-    return res.json({ message: "Done" });
+    return successResponse({ res });
   };
 
   sendForgotCode = async (req: Request, res: Response): Promise<Response> => {
@@ -228,7 +230,7 @@ class AuthenticationService {
     }
 
     emailEvent.emit("resetPassword", { to: email, otp });
-    return res.json({ message: "Done" });
+    return successResponse({ res });
   };
 
   verifyPasswordCode = async (
@@ -255,7 +257,7 @@ class AuthenticationService {
       throw new conflictException("Invalid Otp");
     }
 
-    return res.json({ message: "Done" });
+    return successResponse({ res });
   };
 
   resetVerifyPassword = async (
@@ -294,7 +296,7 @@ class AuthenticationService {
       throw new BadRequestException("Fail To Reset Account Password");
     }
 
-    return res.json({ message: "Done", data: { result } });
+    return successResponse({ res, data: { result } });
   };
 }
 export default new AuthenticationService();
