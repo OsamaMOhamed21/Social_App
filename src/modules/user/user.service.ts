@@ -11,7 +11,6 @@ import {
   createRevokeToken,
   LogoutEnum,
 } from "../../utils/security/token.security";
-import { userRepository } from "../../DB/repository/user.repository";
 import {
   IFreezeAccount,
   IHardDeleteAccount,
@@ -40,6 +39,7 @@ import {
   IRefreshTokenResponse,
   IUserResponse,
 } from "./user.entities";
+import { userRepository } from "../../DB/repository";
 
 class UserService {
   private userModel = new userRepository(UserModel);

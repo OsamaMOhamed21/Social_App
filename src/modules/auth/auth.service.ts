@@ -9,7 +9,6 @@ import type {
   IVerifyCodeDTO,
 } from "./auth.dto";
 import { ProviderEnum, UserModel } from "../../DB/model/user.model";
-import { userRepository } from "../../DB/repository/user.repository";
 import {
   BadRequestException,
   conflictException,
@@ -22,6 +21,7 @@ import { createLoginCredentials } from "../../utils/security/token.security";
 import { OAuth2Client, type TokenPayload } from "google-auth-library";
 import { successResponse } from "../../utils/response/success.response";
 import { ILoginResponse } from "./auth.entities";
+import { userRepository } from "../../DB/repository";
 
 class AuthenticationService {
   private userModel = new userRepository(UserModel);
@@ -138,8 +138,8 @@ class AuthenticationService {
         {
           username,
           email,
-          password: await generateHash(password),
-          confirmEmailOtp: await generateHash(String(otp)),
+          password,
+          confirmEmailOtp: `${otp}`,
         },
       ],
     });

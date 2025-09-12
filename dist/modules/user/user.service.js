@@ -2,14 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const user_model_1 = require("../../DB/model/user.model");
 const token_security_1 = require("../../utils/security/token.security");
-const user_repository_1 = require("../../DB/repository/user.repository");
 const s3_config_1 = require("../../utils/multer/s3.config");
 const cloud_multer_1 = require("../../utils/multer/cloud.multer");
 const error_response_1 = require("../../utils/response/error.response");
 const s3_event_1 = require("../../utils/multer/s3.event");
 const success_response_1 = require("../../utils/response/success.response");
+const repository_1 = require("../../DB/repository");
 class UserService {
-    userModel = new user_repository_1.userRepository(user_model_1.UserModel);
+    userModel = new repository_1.userRepository(user_model_1.UserModel);
     constructor() { }
     profile = async (req, res) => {
         if (!req.user) {

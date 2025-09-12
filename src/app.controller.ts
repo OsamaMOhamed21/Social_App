@@ -14,24 +14,18 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 
 //? import module routing
-import authController from "./modules/auth/auth.controller";
-import userController from "./modules/user/user.controller";
+import { authRouter, userRouter } from "./modules";
+
 import {
   BadRequestException,
   globalErrorHandling,
 } from "./utils/response/error.response";
 import connectDB from "./DB/connections.db";
-import {
-  createGetPreSignedLink,
-  deleteFile,
-  deleteFiles,
-  deleteFolderByPrefix,
-  getFile,
-  listDirectoryFiles,
-} from "./utils/multer/s3.config";
+import { createGetPreSignedLink, getFile } from "./utils/multer/s3.config";
 
 import { promisify } from "node:util";
 import { pipeline } from "node:stream";
+
 const createS3WriteStreamPipe = promisify(pipeline);
 
 //* handel base rate limit on all api request
@@ -58,8 +52,8 @@ const bootStrap = async (): Promise<void> => {
   });
 
   //* sub-app-routeing-modules
-  app.use("/auth", authController);
-  app.use("/user", userController);
+  app.use("/auth", authRouter);
+  app.use("/user", userRouter);
 
   //* get assets
   app.get(
