@@ -14,7 +14,7 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 
 //? import module routing
-import { authRouter, userRouter } from "./modules";
+import { authRouter, postRouter, userRouter } from "./modules";
 
 import {
   BadRequestException,
@@ -54,6 +54,7 @@ const bootStrap = async (): Promise<void> => {
   //* sub-app-routeing-modules
   app.use("/auth", authRouter);
   app.use("/user", userRouter);
+  app.use("/post", postRouter);
 
   //* get assets
   app.get(

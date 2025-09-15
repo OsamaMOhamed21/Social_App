@@ -16,6 +16,16 @@ class DatabaseRepository {
         }
         return await doc.exec();
     }
+    async find({ filter, select, options, }) {
+        const doc = this.model.find(filter || {}).select(select || "");
+        if (options?.populate) {
+            doc.populate(options.populate);
+        }
+        if (options?.lean) {
+            doc.lean(options.lean);
+        }
+        return await doc.exec();
+    }
     async create({ data, options, }) {
         return await this.model.create(data, options);
     }
@@ -24,6 +34,9 @@ class DatabaseRepository {
     }
     async findByIdAndUpdate({ id, update, options = { new: true }, }) {
         return await this.model.findByIdAndUpdate(id, { ...update, $inc: { __v: 1 } }, options);
+    }
+    async findOneAndUpdate({ filter, update, options = { new: true }, }) {
+        return await this.model.findOneAndUpdate(filter, { ...update, $inc: { __v: 1 } }, options);
     }
     async deleteOne({ filter, }) {
         return await this.model.deleteOne(filter);

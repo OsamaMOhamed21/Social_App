@@ -94,6 +94,7 @@ const userSchema = new Schema<IUser>(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
+    strictQuery: true,
   }
 );
 
@@ -125,6 +126,18 @@ userSchema.pre(
     next();
   }
 );
+
+userSchema.pre(["find", "findOne"], function (next) {
+  const query = this.getQuery();
+
+  if (query.paranoid === false) {
+    this.setQuery({ ...query });
+  } else {
+    this.setQuery({ ...query, freezedAt: { $exists: false } });
+  }
+
+  next();
+});
 
 userSchema.post("save", async function (doc, next) {
   const that = this as HUserDocument & {

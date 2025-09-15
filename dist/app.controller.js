@@ -34,6 +34,7 @@ const bootStrap = async () => {
     });
     app.use("/auth", modules_1.authRouter);
     app.use("/user", modules_1.userRouter);
+    app.use("/post", modules_1.postRouter);
     app.get("/upload/*path", async (req, res) => {
         const { downloadName, download = "false" } = req.query;
         const { path } = req.params;

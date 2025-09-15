@@ -54,6 +54,7 @@ const userSchema = new mongoose_1.Schema({
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
+    strictQuery: true,
 });
 userSchema
     .virtual("username")
@@ -72,6 +73,16 @@ userSchema.pre("save", async function (next) {
     if (this.isModified("confirmEmailOtp")) {
         this.confirmEmailPlainOtp = this.confirmEmailOtp;
         this.confirmEmailOtp = await (0, hash_security_1.generateHash)(this.confirmEmailOtp);
+    }
+    next();
+});
+userSchema.pre(["find", "findOne"], function (next) {
+    const query = this.getQuery();
+    if (query.paranoid === false) {
+        this.setQuery({ ...query });
+    }
+    else {
+        this.setQuery({ ...query, freezedAt: { $exists: false } });
     }
     next();
 });
