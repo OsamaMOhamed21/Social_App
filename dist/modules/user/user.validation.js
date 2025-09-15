@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hardDeleteAccount = exports.restoreAccount = exports.freezeAccount = exports.logout = void 0;
+exports.hardDeleteAccount = exports.updateBasicInfo = exports.restoreAccount = exports.freezeAccount = exports.logout = void 0;
 const zod_1 = require("zod");
 const token_security_1 = require("../../utils/security/token.security");
 const mongoose_1 = require("mongoose");
@@ -33,5 +33,16 @@ exports.restoreAccount = {
         error: "Invalid ObjectId Format",
         path: ["userId"],
     }),
+};
+exports.updateBasicInfo = {
+    body: zod_1.z
+        .strictObject({
+        firstName: zod_1.z.string().optional(),
+        lastName: zod_1.z.string().optional(),
+        phone: zod_1.z.string().optional(),
+    })
+        .refine((data) => {
+        return data.firstName && data.lastName && data.phone;
+    }, { error: "Invalid Data" }),
 };
 exports.hardDeleteAccount = exports.restoreAccount;

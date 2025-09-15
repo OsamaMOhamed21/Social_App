@@ -224,5 +224,23 @@ class UserService {
       data: { credentials },
     });
   };
+
+  updateBasicInfo = async (req: Request, res: Response): Promise<Response> => {
+    const userId = req.user?._id;
+    const { firstName, lastName, phone } = req.body;
+
+    const user = await this.userModel.findByIdAndUpdate({
+      id: userId as Types.ObjectId,
+      update: {
+        ...(firstName && { firstName }),
+        ...(lastName && { lastName }),
+        ...(phone && { phone }),
+      },
+    });
+    if (!user) {
+      throw new NotFoundRequestException("User Not Found");
+    }
+    return successResponse({ res });
+  };
 }
 export default new UserService();

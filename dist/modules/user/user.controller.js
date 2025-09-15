@@ -55,6 +55,8 @@ router.patch("/profile-cover-image", (0, authentication_middleware_1.authenticat
     validation: cloud_multer_1.fileValidation.image,
     storageApproach: cloud_multer_1.StorageEnum.disk,
 }).array("images", 2), user_service_1.default.profileCoverImage);
+router.patch("/profile-image", (0, authentication_middleware_1.authentication)(), user_service_1.default.profileImage);
+router.patch("/update-user", (0, authentication_middleware_1.authentication)(), (0, validation_middleware_1.validation)(validator.updateBasicInfo), user_service_1.default.updateBasicInfo);
 router.post("/logout", (0, authentication_middleware_1.authentication)(), (0, validation_middleware_1.validation)(validator.logout), user_service_1.default.logout);
 router.post("/refresh-token", (0, authentication_middleware_1.authentication)(token_security_1.TokenEnum.refresh), user_service_1.default.refreshToken);
 exports.default = router;

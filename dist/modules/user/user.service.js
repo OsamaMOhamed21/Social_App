@@ -150,5 +150,21 @@ class UserService {
             data: { credentials },
         });
     };
+    updateBasicInfo = async (req, res) => {
+        const userId = req.user?._id;
+        const { firstName, lastName, phone } = req.body;
+        const user = await this.userModel.findByIdAndUpdate({
+            id: userId,
+            update: {
+                ...(firstName && { firstName }),
+                ...(lastName && { lastName }),
+                ...(phone && { phone }),
+            },
+        });
+        if (!user) {
+            throw new error_response_1.NotFoundRequestException("User Not Found");
+        }
+        return (0, success_response_1.successResponse)({ res });
+    };
 }
 exports.default = new UserService();

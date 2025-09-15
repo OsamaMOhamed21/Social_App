@@ -41,4 +41,19 @@ export const restoreAccount = {
     ),
 };
 
+export const updateBasicInfo = {
+  body: z
+    .strictObject({
+      firstName: z.string().optional(),
+      lastName: z.string().optional(),
+      phone: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        return data.firstName && data.lastName && data.phone;
+      },
+      { error: "Invalid Data" }
+    ),
+};
+
 export const hardDeleteAccount = restoreAccount;

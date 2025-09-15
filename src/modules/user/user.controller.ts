@@ -56,6 +56,15 @@ router.patch(
   userService.profileCoverImage
 );
 
+router.patch("/profile-image", authentication(), userService.profileImage);
+
+router.patch(
+  "/update-user",
+  authentication(),
+  validation(validator.updateBasicInfo),
+  userService.updateBasicInfo
+);
+
 router.post(
   "/logout",
   authentication(),

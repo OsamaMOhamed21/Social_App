@@ -13,7 +13,7 @@ import {
 } from "../../utils/response/error.response";
 import { v4 as uuid } from "uuid";
 import { deleteFiles, uploadFiles } from "../../utils/multer/s3.config";
-import { LikePostParamsDto, LikePostQueryDto } from "./post.dto";
+import {  LikePostQueryDto } from "./post.dto";
 import { UpdateQuery } from "mongoose";
 class PostService {
   private postModel = new PostRepository(PostModel);
