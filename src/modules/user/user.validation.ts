@@ -58,6 +58,9 @@ export const updateBasicInfo = {
 };
 
 export const updatePassword = {
+  query: z.object({
+    flag: z.enum(LogoutEnum).default(LogoutEnum.only),
+  }),
   body: z
     .strictObject({
       password: generalFields.password,
@@ -66,7 +69,7 @@ export const updatePassword = {
     })
     .refine((data) => data.confirmPassword === data.password, {
       message: "Passwords do not match",
-      path: ["confirmPassword"], 
+      path: ["confirmPassword"],
     }),
 };
 

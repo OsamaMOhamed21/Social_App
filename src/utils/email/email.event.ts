@@ -27,3 +27,4 @@ emailEvent.on("resetPassword", async (data: IEmail) => {
     console.log(`Fail Send Email ❌`, error);
   }
 });
+

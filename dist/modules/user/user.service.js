@@ -177,14 +177,15 @@ class UserService {
                 throw new error_response_1.BadRequestException("This is password is used before");
             }
         }
-        let updateData = {};
+        let statusCode = 200;
+        const update = {};
         switch (flag) {
             case token_security_1.LogoutEnum.all:
-                updateData.changeCredentialsTime = new Date();
+                update.changeCredentialsTime = new Date();
                 break;
-            case token_security_1.LogoutEnum.only:
-                (0, token_security_1.createRevokeToken)({ req });
             default:
+                await (0, token_security_1.createRevokeToken)(req.decoded);
+                statusCode = 201;
                 break;
         }
         const user = await this.userModel.findByIdAndUpdate({
@@ -192,7 +193,7 @@ class UserService {
             update: {
                 $set: {
                     password: await (0, hash_security_1.generateHash)(password),
-                    ...updateData,
+                    ...update,
                 },
                 $push: { historyPassword: req.user?.password },
             },
@@ -200,7 +201,7 @@ class UserService {
         if (!user) {
             throw new error_response_1.BadRequestException("In-valid Account");
         }
-        return (0, success_response_1.successResponse)({ res, data: { user } });
+        return (0, success_response_1.successResponse)({ res, statusCode, data: { user } });
     };
 }
 exports.default = new UserService();

@@ -47,6 +47,9 @@ exports.updateBasicInfo = {
     }, { error: "Invalid Data" }),
 };
 exports.updatePassword = {
+    query: zod_1.z.object({
+        flag: zod_1.z.enum(token_security_1.LogoutEnum).default(token_security_1.LogoutEnum.only),
+    }),
     body: zod_1.z
         .strictObject({
         password: validation_middleware_1.generalFields.password,

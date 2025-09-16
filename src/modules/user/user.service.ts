@@ -254,14 +254,15 @@ class UserService {
         throw new BadRequestException("This is password is used before");
       }
     }
-    let updateData: Partial<HUserDocument> = {};
+    let statusCode: number = 200;
+    const update: UpdateQuery<IUser> = {};
     switch (flag) {
       case LogoutEnum.all:
-        updateData.changeCredentialsTime = new Date();
+        update.changeCredentialsTime = new Date();
         break;
-      case LogoutEnum.only:
-        createRevokeToken({ req });
       default:
+        await createRevokeToken(req.decoded as JwtPayload);
+        statusCode = 201;
         break;
     }
 
@@ -270,7 +271,7 @@ class UserService {
       update: {
         $set: {
           password: await generateHash(password),
-          ...updateData,
+          ...update,
         },
         $push: { historyPassword: req.user?.password },
       },
@@ -280,7 +281,7 @@ class UserService {
       throw new BadRequestException("In-valid Account");
     }
 
-    return successResponse({ res, data: { user } });
+    return successResponse({ res, statusCode, data: { user } });
   };
 }
 export default new UserService();
