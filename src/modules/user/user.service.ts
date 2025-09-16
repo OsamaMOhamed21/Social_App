@@ -40,6 +40,7 @@ import {
   IUserResponse,
 } from "./user.entities";
 import { userRepository } from "../../DB/repository";
+import { compareHash, generateHash } from "../../utils/security/hash.security";
 
 class UserService {
   private userModel = new userRepository(UserModel);
@@ -241,6 +242,45 @@ class UserService {
       throw new NotFoundRequestException("User Not Found");
     }
     return successResponse({ res });
+  };
+
+  updatePassword = async (req: Request, res: Response): Promise<Response> => {
+    const { oldPassword, password, flag } = req.body;
+    if (!(await compareHash(oldPassword, req.user?.password as string))) {
+      throw new NotFoundRequestException("In-valid Login Data");
+    }
+    for (const historyPassword of req.user?.historyPassword || []) {
+      if (await compareHash(password, historyPassword)) {
+        throw new BadRequestException("This is password is used before");
+      }
+    }
+    let updateData: Partial<HUserDocument> = {};
+    switch (flag) {
+      case LogoutEnum.all:
+        updateData.changeCredentialsTime = new Date();
+        break;
+      case LogoutEnum.only:
+        createRevokeToken({ req });
+      default:
+        break;
+    }
+
+    const user = await this.userModel.findByIdAndUpdate({
+      id: req.user?._id as Types.ObjectId,
+      update: {
+        $set: {
+          password: await generateHash(password),
+          ...updateData,
+        },
+        $push: { historyPassword: req.user?.password },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException("In-valid Account");
+    }
+
+    return successResponse({ res, data: { user } });
   };
 }
 export default new UserService();

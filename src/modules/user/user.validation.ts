@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { LogoutEnum } from "../../utils/security/token.security";
 import { Types } from "mongoose";
+import { generalFields } from "../../middleware/validation.middleware";
 
 export const logout = {
   body: z.strictObject({
@@ -54,6 +55,19 @@ export const updateBasicInfo = {
       },
       { error: "Invalid Data" }
     ),
+};
+
+export const updatePassword = {
+  body: z
+    .strictObject({
+      password: generalFields.password,
+      oldPassword: generalFields.password,
+      confirmPassword: generalFields.confirmPassword,
+    })
+    .refine((data) => data.confirmPassword === data.password, {
+      message: "Passwords do not match",
+      path: ["confirmPassword"], 
+    }),
 };
 
 export const hardDeleteAccount = restoreAccount;

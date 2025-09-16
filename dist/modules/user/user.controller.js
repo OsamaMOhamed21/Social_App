@@ -59,4 +59,5 @@ router.patch("/profile-image", (0, authentication_middleware_1.authentication)()
 router.patch("/update-user", (0, authentication_middleware_1.authentication)(), (0, validation_middleware_1.validation)(validator.updateBasicInfo), user_service_1.default.updateBasicInfo);
 router.post("/logout", (0, authentication_middleware_1.authentication)(), (0, validation_middleware_1.validation)(validator.logout), user_service_1.default.logout);
 router.post("/refresh-token", (0, authentication_middleware_1.authentication)(token_security_1.TokenEnum.refresh), user_service_1.default.refreshToken);
+router.patch("/update-password", (0, validation_middleware_1.validation)(validator.updatePassword), (0, authentication_middleware_1.authentication)(), user_service_1.default.updatePassword);
 exports.default = router;

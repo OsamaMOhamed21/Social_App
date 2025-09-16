@@ -32,6 +32,7 @@ const userSchema = new mongoose_1.Schema({
             return this.provider === ProviderEnum.GOOGLE ? false : true;
         },
     },
+    historyPassword: [String],
     resetPasswordOtp: { type: String },
     changeCredentialsTime: { type: Date },
     phone: { type: String },

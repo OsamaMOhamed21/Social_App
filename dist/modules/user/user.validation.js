@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hardDeleteAccount = exports.updateBasicInfo = exports.restoreAccount = exports.freezeAccount = exports.logout = void 0;
+exports.hardDeleteAccount = exports.updatePassword = exports.updateBasicInfo = exports.restoreAccount = exports.freezeAccount = exports.logout = void 0;
 const zod_1 = require("zod");
 const token_security_1 = require("../../utils/security/token.security");
 const mongoose_1 = require("mongoose");
+const validation_middleware_1 = require("../../middleware/validation.middleware");
 exports.logout = {
     body: zod_1.z.strictObject({
         flag: zod_1.z.enum(token_security_1.LogoutEnum).default(token_security_1.LogoutEnum.only),
@@ -44,5 +45,17 @@ exports.updateBasicInfo = {
         .refine((data) => {
         return data.firstName && data.lastName && data.phone;
     }, { error: "Invalid Data" }),
+};
+exports.updatePassword = {
+    body: zod_1.z
+        .strictObject({
+        password: validation_middleware_1.generalFields.password,
+        oldPassword: validation_middleware_1.generalFields.password,
+        confirmPassword: validation_middleware_1.generalFields.confirmPassword,
+    })
+        .refine((data) => data.confirmPassword === data.password, {
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+    }),
 };
 exports.hardDeleteAccount = exports.restoreAccount;

@@ -77,4 +77,11 @@ router.post(
   authentication(TokenEnum.refresh),
   userService.refreshToken
 );
+router.patch(
+  "/update-password",
+  validation(validator.updatePassword),
+  authentication(),
+  userService.updatePassword
+);
+
 export default router;

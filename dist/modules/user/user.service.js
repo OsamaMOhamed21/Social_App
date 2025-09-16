@@ -8,6 +8,7 @@ const error_response_1 = require("../../utils/response/error.response");
 const s3_event_1 = require("../../utils/multer/s3.event");
 const success_response_1 = require("../../utils/response/success.response");
 const repository_1 = require("../../DB/repository");
+const hash_security_1 = require("../../utils/security/hash.security");
 class UserService {
     userModel = new repository_1.userRepository(user_model_1.UserModel);
     constructor() { }
@@ -165,6 +166,41 @@ class UserService {
             throw new error_response_1.NotFoundRequestException("User Not Found");
         }
         return (0, success_response_1.successResponse)({ res });
+    };
+    updatePassword = async (req, res) => {
+        const { oldPassword, password, flag } = req.body;
+        if (!(await (0, hash_security_1.compareHash)(oldPassword, req.user?.password))) {
+            throw new error_response_1.NotFoundRequestException("In-valid Login Data");
+        }
+        for (const historyPassword of req.user?.historyPassword || []) {
+            if (await (0, hash_security_1.compareHash)(password, historyPassword)) {
+                throw new error_response_1.BadRequestException("This is password is used before");
+            }
+        }
+        let updateData = {};
+        switch (flag) {
+            case token_security_1.LogoutEnum.all:
+                updateData.changeCredentialsTime = new Date();
+                break;
+            case token_security_1.LogoutEnum.only:
+                (0, token_security_1.createRevokeToken)({ req });
+            default:
+                break;
+        }
+        const user = await this.userModel.findByIdAndUpdate({
+            id: req.user?._id,
+            update: {
+                $set: {
+                    password: await (0, hash_security_1.generateHash)(password),
+                    ...updateData,
+                },
+                $push: { historyPassword: req.user?.password },
+            },
+        });
+        if (!user) {
+            throw new error_response_1.BadRequestException("In-valid Account");
+        }
+        return (0, success_response_1.successResponse)({ res, data: { user } });
     };
 }
 exports.default = new UserService();

@@ -1,5 +1,4 @@
 import { HydratedDocument, model, models, Schema, Types } from "mongoose";
-import { BadRequestException } from "../../utils/response/error.response";
 import { generateHash } from "../../utils/security/hash.security";
 import { emailEvent } from "../../utils/email/email.event";
 
@@ -31,6 +30,7 @@ export interface IUser {
   confirmAt?: Date;
 
   password: string;
+  historyPassword: string[];
   resetPasswordOtp?: string;
   changeCredentialsTime?: Date;
 
@@ -68,6 +68,7 @@ const userSchema = new Schema<IUser>(
         return this.provider === ProviderEnum.GOOGLE ? false : true;
       },
     },
+    historyPassword: [String],
     resetPasswordOtp: { type: String },
     changeCredentialsTime: { type: Date },
 
