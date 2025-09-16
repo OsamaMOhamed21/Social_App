@@ -170,7 +170,8 @@ class UserService {
         return (0, success_response_1.successResponse)({ res });
     };
     updatePassword = async (req, res) => {
-        const { oldPassword, password, flag } = req.body;
+        const { oldPassword, password } = req.body;
+        const { flag } = req.query;
         if (!(await (0, hash_security_1.compareHash)(oldPassword, req.user?.password))) {
             throw new error_response_1.NotFoundRequestException("In-valid Login Data");
         }
@@ -242,9 +243,6 @@ class UserService {
     };
     confirmPendingEmail = async (req, res) => {
         const { pendingEmail, otp } = req.body;
-        if (!pendingEmail || !otp) {
-            throw new error_response_1.BadRequestException("pendingEmail and otp are required");
-        }
         const user = await this.userModel.findOne({
             filter: {
                 pendingEmail,
@@ -255,7 +253,7 @@ class UserService {
             throw new error_response_1.BadRequestException("Invalid account");
         }
         if (!(await (0, hash_security_1.compareHash)(String(otp), user.confirmEmailOtp))) {
-            throw new ConflictException("Invalid Confirm");
+            throw new error_response_1.conflictException("Invalid Confirm");
         }
         await this.userModel.updateOne({
             filter: { _id: user._id },

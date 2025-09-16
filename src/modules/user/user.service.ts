@@ -13,11 +13,14 @@ import {
   LogoutEnum,
 } from "../../utils/security/token.security";
 import {
+  IConfirmPendingEmail,
   IFreezeAccount,
   IHardDeleteAccount,
   ILogout,
   IRestoreAccount,
+  IUpdateEmail,
   IUpdatePassword,
+  IUpdatePasswordQuery,
 } from "./user.dto";
 import {
   createPreSignedUploadLink,
@@ -250,7 +253,8 @@ class UserService {
   };
 
   updatePassword = async (req: Request, res: Response): Promise<Response> => {
-    const { oldPassword, password, flag } = req.body;
+    const { oldPassword, password }: IUpdatePassword = req.body;
+    const { flag } = req.query as IUpdatePasswordQuery;
     if (!(await compareHash(oldPassword, req.user?.password as string))) {
       throw new NotFoundRequestException("In-valid Login Data");
     }
@@ -293,7 +297,7 @@ class UserService {
   };
 
   updateEmail = async (req: Request, res: Response): Promise<Response> => {
-    const { newEmail } = req.body;
+    const { newEmail }: IUpdateEmail = req.body;
     if (!req.user?.id) {
       throw new NotFoundRequestException("Invalid User");
     }
@@ -331,7 +335,7 @@ class UserService {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const { pendingEmail, otp } = req.body;
+    const { pendingEmail, otp }: IConfirmPendingEmail = req.body;
 
     const user = await this.userModel.findOne({
       filter: {
@@ -345,7 +349,7 @@ class UserService {
     }
 
     if (!(await compareHash(String(otp), user.confirmEmailOtp as string))) {
-      throw new ConflictException("Invalid Confirm");
+      throw new conflictException("Invalid Confirm");
     }
 
     await this.userModel.updateOne({

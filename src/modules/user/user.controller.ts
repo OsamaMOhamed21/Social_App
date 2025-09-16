@@ -68,6 +68,7 @@ router.patch(
 router.patch(
   "/confirm-pending-email",
   authentication(),
+  validation(validator.confirmPendingEmail),
   userService.confirmPendingEmail
 );
 

@@ -74,11 +74,16 @@ export const updatePassword = {
 };
 
 export const updateEmail = {
-  body: z
-    .strictObject({
-   newEmail: generalFields.email,
-    })
+  body: z.strictObject({
+    newEmail: generalFields.email,
+  }),
 };
 
+export const confirmPendingEmail = {
+  body: z.strictObject({
+    pendingEmail: generalFields.email,
+    otp: generalFields.otp,
+  }),
+};
 
 export const hardDeleteAccount = restoreAccount;
