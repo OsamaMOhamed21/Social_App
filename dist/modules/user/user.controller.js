@@ -56,6 +56,8 @@ router.patch("/profile-cover-image", (0, authentication_middleware_1.authenticat
     storageApproach: cloud_multer_1.StorageEnum.disk,
 }).array("images", 2), user_service_1.default.profileCoverImage);
 router.patch("/profile-image", (0, authentication_middleware_1.authentication)(), user_service_1.default.profileImage);
+router.patch("/update-email", (0, validation_middleware_1.validation)(validator.updateEmail), (0, authentication_middleware_1.authentication)(), user_service_1.default.updateEmail);
+router.patch("/confirm-pending-email", (0, authentication_middleware_1.authentication)(), user_service_1.default.confirmPendingEmail);
 router.patch("/update-user", (0, authentication_middleware_1.authentication)(), (0, validation_middleware_1.validation)(validator.updateBasicInfo), user_service_1.default.updateBasicInfo);
 router.post("/logout", (0, authentication_middleware_1.authentication)(), (0, validation_middleware_1.validation)(validator.logout), user_service_1.default.logout);
 router.post("/refresh-token", (0, authentication_middleware_1.authentication)(token_security_1.TokenEnum.refresh), user_service_1.default.refreshToken);

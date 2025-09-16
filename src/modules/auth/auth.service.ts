@@ -61,6 +61,7 @@ class AuthenticationService {
 
     return successResponse<ILoginResponse>({ res, data: { credentials } });
   };
+
   signupWithGmail = async (req: Request, res: Response): Promise<Response> => {
     const { idToken }: IGmailDTO = req.body;
     const { email, family_name, given_name, picture } =
@@ -185,7 +186,7 @@ class AuthenticationService {
       throw new BadRequestException("Invalid account");
     }
 
-    if (!compareHash(otp, user.confirmEmailOtp as string)) {
+    if (!(await compareHash(otp, user.confirmEmailOtp as string))) {
       throw new conflictException("invalid Confirm");
     }
 

@@ -59,6 +59,19 @@ router.patch(
 router.patch("/profile-image", authentication(), userService.profileImage);
 
 router.patch(
+  "/update-email",
+  validation(validator.updateEmail),
+  authentication(),
+  userService.updateEmail
+);
+
+router.patch(
+  "/confirm-pending-email",
+  authentication(),
+  userService.confirmPendingEmail
+);
+
+router.patch(
   "/update-user",
   authentication(),
   validation(validator.updateBasicInfo),

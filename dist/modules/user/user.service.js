@@ -9,6 +9,8 @@ const s3_event_1 = require("../../utils/multer/s3.event");
 const success_response_1 = require("../../utils/response/success.response");
 const repository_1 = require("../../DB/repository");
 const hash_security_1 = require("../../utils/security/hash.security");
+const otp_1 = require("../../utils/otp");
+const email_event_1 = require("../../utils/email/email.event");
 class UserService {
     userModel = new repository_1.userRepository(user_model_1.UserModel);
     constructor() { }
@@ -188,8 +190,11 @@ class UserService {
                 statusCode = 201;
                 break;
         }
-        const user = await this.userModel.findByIdAndUpdate({
-            id: req.user?._id,
+        const user = await this.userModel.findOneAndUpdate({
+            filter: {
+                _id: req.user?._id,
+                provider: user_model_1.ProviderEnum.SYSTEM,
+            },
             update: {
                 $set: {
                     password: await (0, hash_security_1.generateHash)(password),
@@ -202,6 +207,67 @@ class UserService {
             throw new error_response_1.BadRequestException("In-valid Account");
         }
         return (0, success_response_1.successResponse)({ res, statusCode, data: { user } });
+    };
+    updateEmail = async (req, res) => {
+        const { newEmail } = req.body;
+        if (!req.user?.id) {
+            throw new error_response_1.NotFoundRequestException("Invalid User");
+        }
+        const existEmail = await this.userModel.findOne({
+            filter: { email: newEmail },
+        });
+        if (existEmail) {
+            throw new error_response_1.BadRequestException("Email already in use");
+        }
+        const otp = (0, otp_1.generateOtp)();
+        const hashedOtp = await (0, hash_security_1.generateHash)(String(otp));
+        const user = await this.userModel.findOneAndUpdate({
+            filter: {
+                _id: req.user?._id,
+                provider: user_model_1.ProviderEnum.SYSTEM,
+            },
+            update: {
+                $set: {
+                    pendingEmail: newEmail,
+                    confirmEmailOtp: hashedOtp,
+                },
+                $unset: { confirmAt: 1 },
+            },
+        });
+        if (!user) {
+            throw new error_response_1.BadRequestException("Failed to update email");
+        }
+        email_event_1.emailEvent.emit("confirmEmail", { to: newEmail, otp });
+        return (0, success_response_1.successResponse)({ res });
+    };
+    confirmPendingEmail = async (req, res) => {
+        const { pendingEmail, otp } = req.body;
+        if (!pendingEmail || !otp) {
+            throw new error_response_1.BadRequestException("pendingEmail and otp are required");
+        }
+        const user = await this.userModel.findOne({
+            filter: {
+                pendingEmail,
+                confirmEmailOtp: { $exists: true },
+            },
+        });
+        if (!user) {
+            throw new error_response_1.BadRequestException("Invalid account");
+        }
+        if (!(await (0, hash_security_1.compareHash)(String(otp), user.confirmEmailOtp))) {
+            throw new ConflictException("Invalid Confirm");
+        }
+        await this.userModel.updateOne({
+            filter: { _id: user._id },
+            update: {
+                $set: {
+                    email: user.pendingEmail,
+                    confirmAt: new Date(),
+                },
+                $unset: { confirmEmailOtp: 1, pendingEmail: 1 },
+            },
+        });
+        return (0, success_response_1.successResponse)({ res, message: "Email confirmed successfully" });
     };
 }
 exports.default = new UserService();

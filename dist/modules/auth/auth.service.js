@@ -129,7 +129,7 @@ class AuthenticationService {
         if (!user) {
             throw new error_response_1.BadRequestException("Invalid account");
         }
-        if (!(0, hash_security_1.compareHash)(otp, user.confirmEmailOtp)) {
+        if (!(await (0, hash_security_1.compareHash)(otp, user.confirmEmailOtp))) {
             throw new error_response_1.conflictException("invalid Confirm");
         }
         await this.userModel.updateOne({

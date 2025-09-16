@@ -24,6 +24,7 @@ const userSchema = new mongoose_1.Schema({
     lastName: { type: String, required: true, minLength: 2, maxLength: 25 },
     slug: { type: String, required: true, minLength: 5, maxLength: 51 },
     email: { type: String, required: true, unique: true },
+    pendingEmail: { type: String, required: true, unique: true },
     confirmEmailOtp: { type: String },
     confirmAt: { type: Date },
     password: {

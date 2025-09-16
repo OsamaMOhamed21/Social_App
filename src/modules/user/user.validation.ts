@@ -73,4 +73,12 @@ export const updatePassword = {
     }),
 };
 
+export const updateEmail = {
+  body: z
+    .strictObject({
+   newEmail: generalFields.email,
+    })
+};
+
+
 export const hardDeleteAccount = restoreAccount;

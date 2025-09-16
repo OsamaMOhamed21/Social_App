@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hardDeleteAccount = exports.updatePassword = exports.updateBasicInfo = exports.restoreAccount = exports.freezeAccount = exports.logout = void 0;
+exports.hardDeleteAccount = exports.updateEmail = exports.updatePassword = exports.updateBasicInfo = exports.restoreAccount = exports.freezeAccount = exports.logout = void 0;
 const zod_1 = require("zod");
 const token_security_1 = require("../../utils/security/token.security");
 const mongoose_1 = require("mongoose");
@@ -60,5 +60,11 @@ exports.updatePassword = {
         message: "Passwords do not match",
         path: ["confirmPassword"],
     }),
+};
+exports.updateEmail = {
+    body: zod_1.z
+        .strictObject({
+        newEmail: validation_middleware_1.generalFields.email,
+    })
 };
 exports.hardDeleteAccount = exports.restoreAccount;

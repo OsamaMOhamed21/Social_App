@@ -3,6 +3,7 @@ import { UpdateQuery } from "mongoose";
 import {
   HUserDocument,
   IUser,
+  ProviderEnum,
   RoleEnum,
   UserModel,
 } from "../../DB/model/user.model";
@@ -16,6 +17,7 @@ import {
   IHardDeleteAccount,
   ILogout,
   IRestoreAccount,
+  IUpdatePassword,
 } from "./user.dto";
 import {
   createPreSignedUploadLink,
@@ -28,6 +30,7 @@ import { StorageEnum } from "../../utils/multer/cloud.multer";
 import { Types } from "mongoose";
 import {
   BadRequestException,
+  conflictException,
   ForbiddenException,
   NotFoundRequestException,
   UnauthorizedException,
@@ -41,6 +44,8 @@ import {
 } from "./user.entities";
 import { userRepository } from "../../DB/repository";
 import { compareHash, generateHash } from "../../utils/security/hash.security";
+import { generateOtp } from "../../utils/otp";
+import { emailEvent } from "../../utils/email/email.event";
 
 class UserService {
   private userModel = new userRepository(UserModel);
@@ -266,8 +271,11 @@ class UserService {
         break;
     }
 
-    const user = await this.userModel.findByIdAndUpdate({
-      id: req.user?._id as Types.ObjectId,
+    const user = await this.userModel.findOneAndUpdate({
+      filter: {
+        _id: req.user?._id as Types.ObjectId,
+        provider: ProviderEnum.SYSTEM,
+      },
       update: {
         $set: {
           password: await generateHash(password),
@@ -282,6 +290,76 @@ class UserService {
     }
 
     return successResponse({ res, statusCode, data: { user } });
+  };
+
+  updateEmail = async (req: Request, res: Response): Promise<Response> => {
+    const { newEmail } = req.body;
+    if (!req.user?.id) {
+      throw new NotFoundRequestException("Invalid User");
+    }
+
+    const existEmail = await this.userModel.findOne({
+      filter: { email: newEmail },
+    });
+    if (existEmail) {
+      throw new BadRequestException("Email already in use");
+    }
+    const otp = generateOtp();
+    const hashedOtp = await generateHash(String(otp));
+    const user = await this.userModel.findOneAndUpdate({
+      filter: {
+        _id: req.user?._id as Types.ObjectId,
+        provider: ProviderEnum.SYSTEM,
+      },
+      update: {
+        $set: {
+          pendingEmail: newEmail,
+          confirmEmailOtp: hashedOtp,
+        },
+        $unset: { confirmAt: 1 },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException("Failed to update email");
+    }
+    emailEvent.emit("confirmEmail", { to: newEmail, otp });
+    return successResponse({ res });
+  };
+
+  confirmPendingEmail = async (
+    req: Request,
+    res: Response
+  ): Promise<Response> => {
+    const { pendingEmail, otp } = req.body;
+
+    const user = await this.userModel.findOne({
+      filter: {
+        pendingEmail,
+        confirmEmailOtp: { $exists: true },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException("Invalid account");
+    }
+
+    if (!(await compareHash(String(otp), user.confirmEmailOtp as string))) {
+      throw new ConflictException("Invalid Confirm");
+    }
+
+    await this.userModel.updateOne({
+      filter: { _id: user._id },
+      update: {
+        $set: {
+          email: user.pendingEmail,
+          confirmAt: new Date(),
+        },
+        $unset: { confirmEmailOtp: 1, pendingEmail: 1 },
+      },
+    });
+
+    return successResponse({ res, message: "Email confirmed successfully" });
   };
 }
 export default new UserService();

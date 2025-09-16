@@ -26,6 +26,7 @@ export interface IUser {
   slug?: string;
 
   email: string;
+  pendingEmail: string;
   confirmEmailOtp?: string;
   confirmAt?: Date;
 
@@ -59,6 +60,7 @@ const userSchema = new Schema<IUser>(
     slug: { type: String, required: true, minLength: 5, maxLength: 51 },
 
     email: { type: String, required: true, unique: true },
+    pendingEmail: { type: String, required: true, unique: true },
     confirmEmailOtp: { type: String },
     confirmAt: { type: Date },
 
