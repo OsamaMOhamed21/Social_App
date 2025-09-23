@@ -45,13 +45,15 @@ import {
   IRefreshTokenResponse,
   IUserResponse,
 } from "./user.entities";
-import { userRepository } from "../../DB/repository";
+import { PostRepository, userRepository } from "../../DB/repository";
 import { compareHash, generateHash } from "../../utils/security/hash.security";
 import { generateOtp } from "../../utils/otp";
 import { emailEvent } from "../../utils/email/email.event";
+import { PostModel } from "../../DB/model";
 
 class UserService {
   private userModel = new userRepository(UserModel);
+  private postModel = new PostRepository(PostModel);
   constructor() {}
 
   profile = async (req: Request, res: Response): Promise<Response> => {
@@ -63,6 +65,43 @@ class UserService {
       data: {
         user: req.user,
       },
+    });
+  };
+
+  dashboard = async (req: Request, res: Response): Promise<Response> => {
+    const results = await Promise.allSettled([
+      this.userModel.find({ filter: {} }),
+      this.postModel.find({ filter: {} }),
+    ]);
+    return successResponse({
+      res,
+      data: { results },
+    });
+  };
+
+  changeRole = async (req: Request, res: Response): Promise<Response> => {
+    const { userId } = req.params as unknown as { userId: Types.ObjectId };
+    const { role }: { role: RoleEnum } = req.body;
+    const denyRoles: RoleEnum[] = [role, RoleEnum.superAdmin];
+    if (req.user?.role === RoleEnum.admin) {
+      denyRoles.push(RoleEnum.admin);
+    }
+    const user = await this.userModel.findOneAndUpdate({
+      filter: {
+        _id: userId as Types.ObjectId,
+        role: { $nin: denyRoles },
+      },
+      update: {
+        role,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundRequestException("fail to find matching result");
+    }
+
+    return successResponse({
+      res,
     });
   };
 
@@ -244,6 +283,7 @@ class UserService {
         ...(firstName && { firstName }),
         ...(lastName && { lastName }),
         ...(phone && { phone }),
+        slug: firstName + "-" + lastName,
       },
     });
     if (!user) {

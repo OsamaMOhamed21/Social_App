@@ -46,6 +46,8 @@ const cloud_multer_1 = require("../../utils/multer/cloud.multer");
 const user_authorization_1 = require("./user.authorization");
 const router = (0, express_1.Router)();
 router.get("/", (0, authentication_middleware_1.authentication)(), user_service_1.default.profile);
+router.get("/dashboard", (0, authentication_middleware_1.authorization)(user_authorization_1.endPoint.dashboard), user_service_1.default.dashboard);
+router.patch("/:userId/change-role", (0, authentication_middleware_1.authorization)(user_authorization_1.endPoint.dashboard), (0, validation_middleware_1.validation)(validator.changeRole), user_service_1.default.changeRole);
 router.delete("{/:userId}/freeze-account", (0, authentication_middleware_1.authentication)(), (0, validation_middleware_1.validation)(validator.freezeAccount), user_service_1.default.freezeAccount);
 router.patch("/:userId/restore-account", (0, authentication_middleware_1.authorization)(user_authorization_1.endPoint.restoreAccount), (0, validation_middleware_1.validation)(validator.restoreAccount), user_service_1.default.restoreAccount);
 router.patch("/:userId/restore-account", (0, authentication_middleware_1.authorization)(user_authorization_1.endPoint.restoreAccount), (0, validation_middleware_1.validation)(validator.restoreAccount), user_service_1.default.restoreAccount);

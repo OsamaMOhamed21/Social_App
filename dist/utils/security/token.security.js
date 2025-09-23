@@ -36,6 +36,7 @@ const detectSignature = async (role = user_model_1.RoleEnum.user) => {
     let signatureLevel = signatureLevelEnum.bearer;
     switch (role) {
         case user_model_1.RoleEnum.admin:
+        case user_model_1.RoleEnum.superAdmin:
             signatureLevel = signatureLevelEnum.system;
             break;
         default:

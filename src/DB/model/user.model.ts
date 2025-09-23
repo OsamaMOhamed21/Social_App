@@ -10,6 +10,7 @@ export enum GenderEnum {
 export enum RoleEnum {
   user = "user",
   admin = "admin",
+  superAdmin = "superAdmin",
 }
 
 export enum ProviderEnum {
@@ -26,7 +27,7 @@ export interface IUser {
   slug?: string;
 
   email: string;
-  pendingEmail: string;
+  pendingEmail?: string;
   confirmEmailOtp?: string;
   confirmAt?: Date;
 
@@ -47,8 +48,11 @@ export interface IUser {
 
   freezeAt?: Date;
   freezeBy?: Types.ObjectId;
+
   restoreAt?: Date;
   restoreBy?: Types.ObjectId;
+  friends?: Types.ObjectId[];
+
   createdAt: Date;
   updatedAt?: Date;
 }
@@ -60,7 +64,7 @@ const userSchema = new Schema<IUser>(
     slug: { type: String, required: true, minLength: 5, maxLength: 51 },
 
     email: { type: String, required: true, unique: true },
-    pendingEmail: { type: String, required: true, unique: true },
+    pendingEmail: { type: String, unique: true, sparse: true },
     confirmEmailOtp: { type: String },
     confirmAt: { type: Date },
 
@@ -84,6 +88,7 @@ const userSchema = new Schema<IUser>(
     freezeBy: { type: Schema.Types.ObjectId, ref: "User" },
     restoreAt: Date,
     restoreBy: { type: Schema.Types.ObjectId, ref: "User" },
+    friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
 
     gender: { type: String, enum: GenderEnum, default: GenderEnum.male },
     role: { type: String, enum: RoleEnum, default: RoleEnum.user },

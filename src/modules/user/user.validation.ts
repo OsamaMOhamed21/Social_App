@@ -2,6 +2,7 @@ import { z } from "zod";
 import { LogoutEnum } from "../../utils/security/token.security";
 import { Types } from "mongoose";
 import { generalFields } from "../../middleware/validation.middleware";
+import { RoleEnum } from "../../DB/model";
 
 export const logout = {
   body: z.strictObject({
@@ -83,6 +84,15 @@ export const confirmPendingEmail = {
   body: z.strictObject({
     pendingEmail: generalFields.email,
     otp: generalFields.otp,
+  }),
+};
+
+export const changeRole = {
+  params: z.strictObject({
+    userId: generalFields.id,
+  }),
+  body: z.strictObject({
+    role: z.enum(RoleEnum),
   }),
 };
 

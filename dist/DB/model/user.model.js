@@ -13,6 +13,7 @@ var RoleEnum;
 (function (RoleEnum) {
     RoleEnum["user"] = "user";
     RoleEnum["admin"] = "admin";
+    RoleEnum["superAdmin"] = "superAdmin";
 })(RoleEnum || (exports.RoleEnum = RoleEnum = {}));
 var ProviderEnum;
 (function (ProviderEnum) {
@@ -24,7 +25,7 @@ const userSchema = new mongoose_1.Schema({
     lastName: { type: String, required: true, minLength: 2, maxLength: 25 },
     slug: { type: String, required: true, minLength: 5, maxLength: 51 },
     email: { type: String, required: true, unique: true },
-    pendingEmail: { type: String, required: true, unique: true },
+    pendingEmail: { type: String, unique: true, sparse: true },
     confirmEmailOtp: { type: String },
     confirmAt: { type: Date },
     password: {
@@ -45,6 +46,7 @@ const userSchema = new mongoose_1.Schema({
     freezeBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
     restoreAt: Date,
     restoreBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
+    friends: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
     gender: { type: String, enum: GenderEnum, default: GenderEnum.male },
     role: { type: String, enum: RoleEnum, default: RoleEnum.user },
     provider: {

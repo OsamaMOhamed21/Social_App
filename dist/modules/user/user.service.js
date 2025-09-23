@@ -11,8 +11,10 @@ const repository_1 = require("../../DB/repository");
 const hash_security_1 = require("../../utils/security/hash.security");
 const otp_1 = require("../../utils/otp");
 const email_event_1 = require("../../utils/email/email.event");
+const model_1 = require("../../DB/model");
 class UserService {
     userModel = new repository_1.userRepository(user_model_1.UserModel);
+    postModel = new repository_1.PostRepository(model_1.PostModel);
     constructor() { }
     profile = async (req, res) => {
         if (!req.user) {
@@ -23,6 +25,39 @@ class UserService {
             data: {
                 user: req.user,
             },
+        });
+    };
+    dashboard = async (req, res) => {
+        const results = await Promise.allSettled([
+            this.userModel.find({ filter: {} }),
+            this.postModel.find({ filter: {} }),
+        ]);
+        return (0, success_response_1.successResponse)({
+            res,
+            data: { results },
+        });
+    };
+    changeRole = async (req, res) => {
+        const { userId } = req.params;
+        const { role } = req.body;
+        const denyRoles = [role, user_model_1.RoleEnum.superAdmin];
+        if (req.user?.role === user_model_1.RoleEnum.admin) {
+            denyRoles.push(user_model_1.RoleEnum.admin);
+        }
+        const user = await this.userModel.findOneAndUpdate({
+            filter: {
+                _id: userId,
+                role: { $nin: denyRoles },
+            },
+            update: {
+                role,
+            },
+        });
+        if (!user) {
+            throw new error_response_1.NotFoundRequestException("fail to find matching result");
+        }
+        return (0, success_response_1.successResponse)({
+            res,
         });
     };
     profileImage = async (req, res) => {
@@ -162,6 +197,7 @@ class UserService {
                 ...(firstName && { firstName }),
                 ...(lastName && { lastName }),
                 ...(phone && { phone }),
+                slug: firstName + "-" + lastName,
             },
         });
         if (!user) {

@@ -16,6 +16,19 @@ import { endPoint } from "./user.authorization";
 const router = Router();
 router.get("/", authentication(), userService.profile);
 
+router.get(
+  "/dashboard",
+  authorization(endPoint.dashboard),
+  userService.dashboard
+);
+
+router.patch(
+  "/:userId/change-role",
+  authorization(endPoint.dashboard),
+  validation(validator.changeRole),
+  userService.changeRole
+);
+
 router.delete(
   "{/:userId}/freeze-account",
   authentication(),

@@ -10,7 +10,7 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from "../response/error.response";
-import { userRepository , TokenRepository } from "../../DB/repository/";
+import { userRepository, TokenRepository } from "../../DB/repository/";
 import { HTokenDocument, TokenModel } from "../../DB/model/token.model";
 
 export enum signatureLevelEnum {
@@ -58,6 +58,7 @@ export const detectSignature = async (
   let signatureLevel: signatureLevelEnum = signatureLevelEnum.bearer;
   switch (role) {
     case RoleEnum.admin:
+    case RoleEnum.superAdmin:
       signatureLevel = signatureLevelEnum.system;
       break;
     default:

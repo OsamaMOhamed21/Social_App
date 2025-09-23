@@ -79,6 +79,8 @@ const postSchema = new Schema<IPost>(
   {
     timestamps: true,
     strictQuery: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
@@ -92,6 +94,24 @@ postSchema.pre(["findOneAndUpdate", "updateOne"], function (next) {
   }
 
   next();
+});
+
+postSchema.pre(["findOne", "find", "countDocuments"], function (next) {
+  const query = this.getQuery();
+
+  if (query.paranoid === false) {
+    this.setQuery({ ...query });
+  } else {
+    this.setQuery({ ...query, freezedAt: { $exists: false } });
+  }
+
+  next();
+});
+
+postSchema.virtual("comments", {
+  localField: "_id",
+  foreignField: "postId",
+  ref: "Comment",
 });
 
 export const PostModel = models.Post || model<IPost>("Post", postSchema);
