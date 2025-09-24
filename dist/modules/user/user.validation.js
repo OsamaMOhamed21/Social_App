@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hardDeleteAccount = exports.changeRole = exports.confirmPendingEmail = exports.updateEmail = exports.updatePassword = exports.updateBasicInfo = exports.restoreAccount = exports.freezeAccount = exports.logout = void 0;
+exports.hardDeleteAccount = exports.AcceptFriendRequest = exports.sendFriendRequest = exports.changeRole = exports.confirmPendingEmail = exports.updateEmail = exports.updatePassword = exports.updateBasicInfo = exports.restoreAccount = exports.freezeAccount = exports.logout = void 0;
 const zod_1 = require("zod");
 const token_security_1 = require("../../utils/security/token.security");
 const mongoose_1 = require("mongoose");
@@ -79,6 +79,14 @@ exports.changeRole = {
     }),
     body: zod_1.z.strictObject({
         role: zod_1.z.enum(model_1.RoleEnum),
+    }),
+};
+exports.sendFriendRequest = {
+    params: exports.changeRole.params,
+};
+exports.AcceptFriendRequest = {
+    params: zod_1.z.strictObject({
+        requestId: validation_middleware_1.generalFields.id,
     }),
 };
 exports.hardDeleteAccount = exports.restoreAccount;

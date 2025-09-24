@@ -18,3 +18,4 @@ __exportStar(require("./token.model"), exports);
 __exportStar(require("./user.model"), exports);
 __exportStar(require("./post.model"), exports);
 __exportStar(require("./comment.model"), exports);
+__exportStar(require("./friendRequest.model"), exports);

@@ -15,17 +15,24 @@ const model_1 = require("../../DB/model");
 class UserService {
     userModel = new repository_1.userRepository(user_model_1.UserModel);
     postModel = new repository_1.PostRepository(model_1.PostModel);
+    friendRequestModel = new repository_1.friendRequestRepository(model_1.FriendRequestModel);
     constructor() { }
     profile = async (req, res) => {
-        if (!req.user) {
-            throw new error_response_1.UnauthorizedException("Missing Details User");
-        }
-        return (0, success_response_1.successResponse)({
-            res,
-            data: {
-                user: req.user,
+        const profile = await this.userModel.findByID({
+            id: req.user?._id,
+            options: {
+                populate: [
+                    {
+                        path: "friends",
+                        select: "firstName lastName email gender profileImage",
+                    },
+                ],
             },
         });
+        if (!profile) {
+            throw new error_response_1.NotFoundRequestException("fail to find your user profile");
+        }
+        return (0, success_response_1.successResponse)({ res, data: { user: profile } });
     };
     dashboard = async (req, res) => {
         const results = await Promise.allSettled([
@@ -302,6 +309,66 @@ class UserService {
             },
         });
         return (0, success_response_1.successResponse)({ res, message: "Email confirmed successfully" });
+    };
+    sendFriendRequest = async (req, res) => {
+        const { userId } = req.params;
+        const checkFriendRequestExist = await this.friendRequestModel.findOne({
+            filter: {
+                createdBy: { $in: [req.user?._id, userId] },
+                sendTo: { $in: [req.user?._id, userId] },
+            },
+        });
+        if (checkFriendRequestExist) {
+            throw new error_response_1.conflictException("friend request already sent");
+        }
+        const user = await this.userModel.findOne({ filter: { _id: userId } });
+        if (!user) {
+            throw new error_response_1.NotFoundRequestException("invalid recipient");
+        }
+        const [friendRequest] = (await this.friendRequestModel.create({
+            data: [
+                {
+                    createdBy: req.user?._id,
+                    sendTo: userId,
+                },
+            ],
+        })) || [];
+        if (!friendRequest) {
+            throw new error_response_1.BadRequestException("something went wrong");
+        }
+        return (0, success_response_1.successResponse)({
+            res,
+            statusCode: 201,
+        });
+    };
+    acceptFriendRequest = async (req, res) => {
+        const { requestId } = req.params;
+        console.log("requestId", requestId);
+        const friendRequest = await this.friendRequestModel.findOneAndUpdate({
+            filter: {
+                _id: requestId,
+                acceptedAt: { $exists: false },
+                sendTo: req.user?._id,
+            },
+            update: {
+                acceptedAt: new Date(),
+            },
+        });
+        if (!friendRequest) {
+            throw new error_response_1.NotFoundRequestException("fail to find matching result");
+        }
+        const { createdBy, sendTo } = friendRequest;
+        await Promise.all([
+            this.userModel.updateOne({
+                filter: { _id: createdBy },
+                update: { $addToSet: { friends: sendTo } },
+            }),
+            this.userModel.updateOne({
+                filter: { _id: sendTo },
+                update: { $addToSet: { friends: createdBy } },
+            }),
+        ]);
+        return (0, success_response_1.successResponse)({ res });
     };
 }
 exports.default = new UserService();

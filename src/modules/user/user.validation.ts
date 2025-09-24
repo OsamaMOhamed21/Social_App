@@ -96,4 +96,14 @@ export const changeRole = {
   }),
 };
 
+export const sendFriendRequest = {
+  params: changeRole.params,
+};
+
+export const AcceptFriendRequest = {
+  params: z.strictObject({
+    requestId: generalFields.id,
+  }),
+};
+
 export const hardDeleteAccount = restoreAccount;

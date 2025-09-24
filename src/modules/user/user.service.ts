@@ -45,27 +45,40 @@ import {
   IRefreshTokenResponse,
   IUserResponse,
 } from "./user.entities";
-import { PostRepository, userRepository } from "../../DB/repository";
+import {
+  friendRequestRepository,
+  PostRepository,
+  userRepository,
+} from "../../DB/repository";
 import { compareHash, generateHash } from "../../utils/security/hash.security";
 import { generateOtp } from "../../utils/otp";
 import { emailEvent } from "../../utils/email/email.event";
-import { PostModel } from "../../DB/model";
+import { FriendRequestModel, PostModel } from "../../DB/model";
 
 class UserService {
   private userModel = new userRepository(UserModel);
   private postModel = new PostRepository(PostModel);
+  private friendRequestModel = new friendRequestRepository(FriendRequestModel);
   constructor() {}
 
   profile = async (req: Request, res: Response): Promise<Response> => {
-    if (!req.user) {
-      throw new UnauthorizedException("Missing Details User");
-    }
-    return successResponse<IUserResponse>({
-      res,
-      data: {
-        user: req.user,
+    const profile = await this.userModel.findByID({
+      id: req.user?._id as Types.ObjectId,
+      options: {
+        populate: [
+          {
+            path: "friends",
+            select: "firstName lastName email gender profileImage",
+          },
+        ],
       },
     });
+
+    if (!profile) {
+      throw new NotFoundRequestException("fail to find your user profile");
+    }
+
+    return successResponse<IUserResponse>({ res, data: { user: profile } });
   };
 
   dashboard = async (req: Request, res: Response): Promise<Response> => {
@@ -404,6 +417,85 @@ class UserService {
     });
 
     return successResponse({ res, message: "Email confirmed successfully" });
+  };
+
+  sendFriendRequest = async (
+    req: Request,
+    res: Response
+  ): Promise<Response> => {
+    const { userId } = req.params as unknown as { userId: Types.ObjectId };
+    const checkFriendRequestExist = await this.friendRequestModel.findOne({
+      filter: {
+        createdBy: { $in: [req.user?._id, userId] },
+        sendTo: { $in: [req.user?._id, userId] },
+      },
+    });
+    if (checkFriendRequestExist) {
+      throw new conflictException("friend request already sent");
+    }
+    const user = await this.userModel.findOne({ filter: { _id: userId } });
+    if (!user) {
+      throw new NotFoundRequestException("invalid recipient");
+    }
+    const [friendRequest] =
+      (await this.friendRequestModel.create({
+        data: [
+          {
+            createdBy: req.user?._id as Types.ObjectId,
+            sendTo: userId,
+          },
+        ],
+      })) || [];
+
+    if (!friendRequest) {
+      throw new BadRequestException("something went wrong");
+    }
+
+    return successResponse({
+      res,
+      statusCode: 201,
+    });
+  };
+
+  acceptFriendRequest = async (
+    req: Request,
+    res: Response
+  ): Promise<Response> => {
+    const { requestId } = req.params as unknown as {
+      requestId: Types.ObjectId;
+    };
+    console.log("requestId", requestId);
+
+    const friendRequest = await this.friendRequestModel.findOneAndUpdate({
+      filter: {
+        _id: requestId,
+        acceptedAt: { $exists: false },
+        sendTo: req.user?._id,
+      },
+      update: {
+        acceptedAt: new Date(),
+      },
+    });
+
+    if (!friendRequest) {
+      throw new NotFoundRequestException("fail to find matching result");
+    }
+
+    const { createdBy, sendTo } = friendRequest;
+
+    await Promise.all([
+      this.userModel.updateOne({
+        filter: { _id: createdBy },
+        update: { $addToSet: { friends: sendTo } },
+      }),
+
+      this.userModel.updateOne({
+        filter: { _id: sendTo },
+        update: { $addToSet: { friends: createdBy } },
+      }),
+    ]);
+
+    return successResponse({ res });
   };
 }
 export default new UserService();

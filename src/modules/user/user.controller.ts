@@ -36,6 +36,20 @@ router.delete(
   userService.freezeAccount
 );
 
+router.get(
+  "{/:userId}/send-friend-request",
+  authentication(),
+  validation(validator.sendFriendRequest),
+  userService.sendFriendRequest
+);
+
+router.get(
+  "{/:requestId}/accept-friend-request",
+  authentication(),
+  validation(validator.AcceptFriendRequest),
+  userService.acceptFriendRequest
+);
+
 router.patch(
   "/:userId/restore-account",
   authorization(endPoint.restoreAccount),
