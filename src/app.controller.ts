@@ -28,6 +28,33 @@ import { pipeline } from "node:stream";
 
 const createS3WriteStreamPipe = promisify(pipeline);
 
+import {
+  GraphQLInt,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLOutputType,
+  GraphQLSchema,
+  GraphQLString,
+} from "graphql";
+import { createHandler } from "graphql-http/lib/use/express";
+
+export const GraphQLUniformResponse = ({
+  name,
+  data,
+}: {
+  name: string;
+  data: GraphQLOutputType;
+}): GraphQLOutputType => {
+  return new GraphQLObjectType({
+    name,
+    fields: {
+      message: { type: GraphQLString },
+      statusCode: { type: GraphQLInt },
+      data: { type: data },
+    },
+  });
+};
+
 //* handel base rate limit on all api request
 const limiter = rateLimit({
   windowMs: 60 * 60000,
@@ -36,6 +63,7 @@ const limiter = rateLimit({
   statusCode: 429,
 });
 
+// const connectSockets = new Map<string, string>();
 //* aoo-start-point
 const bootStrap = async (): Promise<void> => {
   const port: number | string = process.env.PORT || 5000;
@@ -44,6 +72,29 @@ const bootStrap = async (): Promise<void> => {
   //* global application middleware
   app.use(cors(), express.json(), helmet(), limiter);
 
+  const schema = new GraphQLSchema({
+    query: new GraphQLObjectType({
+      name: "RootQueryType",
+      description: "Optional Text",
+      fields: {
+        sayHi: {
+          type: new GraphQLNonNull(GraphQLString),
+          description: "This Felid Return Our Server Welcome Message",
+          resolve: (parent: unknown, args: any): string => {
+            return "Hello GraphQL 🚀";
+          },
+        },
+      },
+    }),
+
+  });
+
+  app.all(
+    "/graphql",
+    createHandler({
+      schema,
+    })
+  );
   //* app-router
   app.get("/", (req: Request, res: Response) => {
     res.status(200).json({
@@ -121,8 +172,51 @@ const bootStrap = async (): Promise<void> => {
   await connectDB();
 
   // * Start Server
-  app.listen(port, () => {
+  const httpServer = app.listen(port, () => {
     console.log(`server is running on port ::: ${port} 👌`);
   });
+
+  // const io = new Server(httpServer, {
+  //   cors: {
+  //     origin: "*",
+  //   },
+  // });
+
+  // io.use(async (socket: Socket, next) => {
+  //   try {
+  //     const { user, decoded } = await decodedToken({
+  //       authorization: socket.handshake?.auth.authorization || "",
+  //       tokenType: TokenEnum.access,
+  //     });
+  //     connectSockets.set(user._id.toString(), socket.id);
+  //     next();
+  //   } catch (error: any) {
+  //     next(error);
+  //   }
+  // });
+  // * listen to => http://localhost:3000/
+
+  // io.on("connection", (socket: Socket) => {
+  //   console.log(socket.id);
+  //   // console.log({ connectSockets });
+
+  //   socket.on("sayHi", (data, callback) => {
+  //     console.log(data);
+  //     callback("Hello From FE");
+  //   });
+
+  //   socket.on("disconnect", () => {
+  //     console.log(`Logout From ::: ${socket.id}`);
+  //   });
+  // });
+
+  // * listen to => http://localhost:3000/admin/
+
+  // io.of("/admin").on("connection", (socket: Socket) => {
+  //   console.log("Admin", socket.id);
+  //   socket.on("disconnect", () => {
+  //     console.log(`Logout From ::: ${socket.id}`);
+  //   });
+  // });
 };
 export default bootStrap;
