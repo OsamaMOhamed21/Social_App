@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.UserService = void 0;
 const user_model_1 = require("../../DB/model/user.model");
 const token_security_1 = require("../../utils/security/token.security");
 const s3_config_1 = require("../../utils/multer/s3.config");
@@ -370,5 +371,15 @@ class UserService {
         ]);
         return (0, success_response_1.successResponse)({ res });
     };
+    sayHi = (user) => {
+        console.log({ s: user });
+        return "Hello GraphQL 🚀";
+    };
+    allUsers = async (args, authUser) => {
+        return (await this.userModel.find({
+            filter: { _id: { $ne: authUser._id }, gender: args.gender },
+        }));
+    };
 }
+exports.UserService = UserService;
 exports.default = new UserService();

@@ -14,7 +14,7 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 
 //? import module routing
-import { authRouter, postRouter, userRouter } from "./modules";
+import { authRouter, postRouter, schema, userRouter } from "./modules";
 
 import {
   BadRequestException,
@@ -28,32 +28,8 @@ import { pipeline } from "node:stream";
 
 const createS3WriteStreamPipe = promisify(pipeline);
 
-import {
-  GraphQLInt,
-  GraphQLNonNull,
-  GraphQLObjectType,
-  GraphQLOutputType,
-  GraphQLSchema,
-  GraphQLString,
-} from "graphql";
 import { createHandler } from "graphql-http/lib/use/express";
-
-export const GraphQLUniformResponse = ({
-  name,
-  data,
-}: {
-  name: string;
-  data: GraphQLOutputType;
-}): GraphQLOutputType => {
-  return new GraphQLObjectType({
-    name,
-    fields: {
-      message: { type: GraphQLString },
-      statusCode: { type: GraphQLInt },
-      data: { type: data },
-    },
-  });
-};
+import { authentication } from "./middleware/authentication.middleware";
 
 //* handel base rate limit on all api request
 const limiter = rateLimit({
@@ -63,7 +39,6 @@ const limiter = rateLimit({
   statusCode: 429,
 });
 
-// const connectSockets = new Map<string, string>();
 //* aoo-start-point
 const bootStrap = async (): Promise<void> => {
   const port: number | string = process.env.PORT || 5000;
@@ -72,29 +47,16 @@ const bootStrap = async (): Promise<void> => {
   //* global application middleware
   app.use(cors(), express.json(), helmet(), limiter);
 
-  const schema = new GraphQLSchema({
-    query: new GraphQLObjectType({
-      name: "RootQueryType",
-      description: "Optional Text",
-      fields: {
-        sayHi: {
-          type: new GraphQLNonNull(GraphQLString),
-          description: "This Felid Return Our Server Welcome Message",
-          resolve: (parent: unknown, args: any): string => {
-            return "Hello GraphQL 🚀";
-          },
-        },
-      },
-    }),
-
-  });
-
+  //* GQLRouter
   app.all(
     "/graphql",
+    authentication(),
     createHandler({
-      schema,
+      schema: schema,
+      context: (req) => ({ user: req.raw.user }),
     })
   );
+
   //* app-router
   app.get("/", (req: Request, res: Response) => {
     res.status(200).json({
@@ -160,6 +122,7 @@ const bootStrap = async (): Promise<void> => {
       return res.json({ message: "Done", data: { url } });
     }
   );
+
   //* in-valid-routing
   app.use("{/*dummy}", (req: Request, res: Response) => {
     return res.status(404).json({ message: "invalid Routing ❌" });

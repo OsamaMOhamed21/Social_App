@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { UpdateQuery } from "mongoose";
 import {
+  GenderEnum,
   HUserDocument,
   IUser,
   ProviderEnum,
@@ -36,7 +37,6 @@ import {
   conflictException,
   ForbiddenException,
   NotFoundRequestException,
-  UnauthorizedException,
 } from "../../utils/response/error.response";
 import { s3Event } from "../../utils/multer/s3.event";
 import { successResponse } from "../../utils/response/success.response";
@@ -55,7 +55,7 @@ import { generateOtp } from "../../utils/otp";
 import { emailEvent } from "../../utils/email/email.event";
 import { FriendRequestModel, PostModel } from "../../DB/model";
 
-class UserService {
+export class UserService {
   private userModel = new userRepository(UserModel);
   private postModel = new PostRepository(PostModel);
   private friendRequestModel = new friendRequestRepository(FriendRequestModel);
@@ -496,6 +496,22 @@ class UserService {
     ]);
 
     return successResponse({ res });
+  };
+
+  //* GQLQuery
+  sayHi = (user: HUserDocument): string => {
+    console.log({ s: user });
+
+    return "Hello GraphQL 🚀";
+  };
+
+  allUsers = async (
+    args: { gender: GenderEnum },
+    authUser: HUserDocument
+  ): Promise<HUserDocument[]> => {
+    return (await this.userModel.find({
+      filter: { _id: { $ne: authUser._id }, gender: args.gender },
+    }))!;
   };
 }
 export default new UserService();
