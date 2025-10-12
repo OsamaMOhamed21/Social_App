@@ -1,12 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hardDeleteAccount = exports.AcceptFriendRequest = exports.sendFriendRequest = exports.changeRole = exports.confirmPendingEmail = exports.updateEmail = exports.updatePassword = exports.updateBasicInfo = exports.restoreAccount = exports.freezeAccount = exports.logout = exports.sayHi = void 0;
+exports.hardDeleteAccount = exports.AcceptFriendRequest = exports.sendFriendRequest = exports.changeRole = exports.confirmPendingEmail = exports.updateEmail = exports.updatePassword = exports.updateBasicInfo = exports.restoreAccount = exports.freezeAccount = exports.logout = exports.welcome = exports.sayHi = void 0;
 const zod_1 = require("zod");
 const token_security_1 = require("../../utils/security/token.security");
 const mongoose_1 = require("mongoose");
 const validation_middleware_1 = require("../../middleware/validation.middleware");
 const model_1 = require("../../DB/model");
 exports.sayHi = zod_1.z.strictObject({
+    name: zod_1.z.string().min(2),
+});
+exports.welcome = zod_1.z.strictObject({
     name: zod_1.z.string().min(2),
 });
 exports.logout = {

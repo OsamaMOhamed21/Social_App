@@ -23,5 +23,3 @@ Object.defineProperty(exports, "router", { enumerable: true, get: function () { 
 var user_schema_gql_1 = require("./user.schema.gql");
 Object.defineProperty(exports, "userGQLSchema", { enumerable: true, get: function () { return __importDefault(user_schema_gql_1).default; } });
 __exportStar(require("./user.validation"), exports);
-__exportStar(require("./user.types.gql"), exports);
-__exportStar(require("./user.args.gql"), exports);

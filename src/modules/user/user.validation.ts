@@ -8,6 +8,10 @@ export const sayHi = z.strictObject({
   name: z.string().min(2),
 });
 
+export const welcome = z.strictObject({
+  name: z.string().min(2),
+});
+
 export const logout = {
   body: z.strictObject({
     flag: z.enum(LogoutEnum).default(LogoutEnum.only),

@@ -135,7 +135,7 @@ const bootStrap = async (): Promise<void> => {
   await connectDB();
 
   // * Start Server
-  const httpServer = app.listen(port, () => {
+   app.listen(port, () => {
     console.log(`server is running on port ::: ${port} 👌`);
   });
 

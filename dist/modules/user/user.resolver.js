@@ -47,6 +47,11 @@ class UserResolver {
         await (0, authentication_middleware_1.graphAuthorization)(user_authorization_1.endPoint.sayHi, context.user.role);
         return this.userService.sayHi(context.user);
     };
+    welcome = async (parent, args, context) => {
+        await (0, validation_middleware_1.graphValidation)(validator.welcome, args);
+        await (0, authentication_middleware_1.graphAuthorization)(user_authorization_1.endPoint.Welcome, context.user.role);
+        return this.userService.welcome(context.user);
+    };
     allUsers = async (parent, args, context) => {
         console.log({ context });
         return await this.userService.allUsers(args, context.user);

@@ -80,6 +80,7 @@ export const GraphQLOneUserResponse = new GraphQLObjectType({
 });
 
 export const sayHi = new GraphQLNonNull(GraphQLString);
+export const Welcome = new GraphQLNonNull(GraphQLString);
 export const allUsers = new GraphQLNonNull(
   new GraphQLList(GraphQLOneUserResponse)
 );

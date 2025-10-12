@@ -72,7 +72,7 @@ const bootStrap = async () => {
     });
     app.use(error_response_1.globalErrorHandling);
     await (0, connections_db_1.default)();
-    const httpServer = app.listen(port, () => {
+    app.listen(port, () => {
         console.log(`server is running on port ::: ${port} 👌`);
     });
 };

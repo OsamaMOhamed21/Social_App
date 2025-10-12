@@ -380,6 +380,10 @@ class UserService {
             filter: { _id: { $ne: authUser._id }, gender: args.gender },
         }));
     };
+    welcome = (user) => {
+        console.log({ s: user });
+        return "Hello GraphQL 🚀";
+    };
 }
 exports.UserService = UserService;
 exports.default = new UserService();

@@ -33,37 +33,29 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-const gqlTypes = __importStar(require("./user.types.gql"));
-const gqlArgs = __importStar(require("./user.args.gql"));
-const user_resolver_1 = require("./user.resolver");
-const graphql_1 = require("graphql");
-class UserGQLSchema {
-    userResolver = new user_resolver_1.UserResolver();
+const post_resolver_1 = require("./post.resolver");
+const gqlTypes = __importStar(require("./post.types.gql"));
+const gqlArgs = __importStar(require("./post.args.gql"));
+class PostGqlSchema {
+    postResolver = new post_resolver_1.PostResolver();
     constructor() { }
     registerQuery = () => {
         return {
-            sayHi: {
-                type: gqlTypes.sayHi,
-                args: { name: { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) } },
-                description: "This Felid Return Our Server Welcome Message",
-                resolve: this.userResolver.sayHi,
-            },
-            allUsers: {
-                type: gqlTypes.allUsers,
-                args: gqlArgs.allUsers,
-                resolve: this.userResolver.allUsers,
+            allPosts: {
+                type: gqlTypes.allPosts,
+                args: gqlArgs.allPosts,
+                resolve: this.postResolver.allPosts,
             },
         };
     };
     registerMutation = () => {
         return {
-            Welcome: {
-                type: gqlTypes.Welcome,
-                args: { name: { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) } },
-                description: "This Felid Return Our Server Welcome Message",
-                resolve: this.userResolver.sayHi,
+            likePost: {
+                type: gqlTypes.GraphQLOnePostResponse,
+                args: gqlArgs.likePost,
+                resolve: this.postResolver.likePost,
             },
         };
     };
 }
-exports.default = new UserGQLSchema();
+exports.default = new PostGqlSchema();

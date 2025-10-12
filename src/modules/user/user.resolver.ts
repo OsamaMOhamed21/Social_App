@@ -20,13 +20,23 @@ export class UserResolver {
     return this.userService.sayHi(context.user);
   };
 
+  welcome = async (
+    parent: unknown,
+    args: { name: string },
+    context: IAuthGraph
+  ): Promise<string> => {
+    await graphValidation<{ name: string }>(validator.welcome, args);
+    await graphAuthorization(endPoint.Welcome, context.user.role);
+    return this.userService.welcome(context.user);
+  };
+
   allUsers = async (
     parent: unknown,
     args: { gender: GenderEnum },
     context: IAuthGraph
   ): Promise<HUserDocument[]> => {
-    console.log({context});
-    
+    console.log({ context });
+
     return await this.userService.allUsers(args, context.user);
   };
 }

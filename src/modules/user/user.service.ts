@@ -513,5 +513,12 @@ export class UserService {
       filter: { _id: { $ne: authUser._id }, gender: args.gender },
     }))!;
   };
+
+  //* GQLMunition
+    welcome = (user: HUserDocument): string => {
+    console.log({ s: user });
+
+    return "Hello GraphQL 🚀";
+  };
 }
 export default new UserService();

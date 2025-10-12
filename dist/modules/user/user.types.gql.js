@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.allUsers = exports.sayHi = exports.GraphQLOneUserResponse = exports.GraphQlProviderEnum = exports.GraphQlRoleEnum = exports.GraphQlGenderEnum = void 0;
+exports.allUsers = exports.Welcome = exports.sayHi = exports.GraphQLOneUserResponse = exports.GraphQlProviderEnum = exports.GraphQlRoleEnum = exports.GraphQlGenderEnum = void 0;
 const graphql_1 = require("graphql");
 const model_1 = require("../../DB/model");
 exports.GraphQlGenderEnum = new graphql_1.GraphQLEnumType({
@@ -62,4 +62,5 @@ exports.GraphQLOneUserResponse = new graphql_1.GraphQLObjectType({
     },
 });
 exports.sayHi = new graphql_1.GraphQLNonNull(graphql_1.GraphQLString);
+exports.Welcome = new graphql_1.GraphQLNonNull(graphql_1.GraphQLString);
 exports.allUsers = new graphql_1.GraphQLNonNull(new graphql_1.GraphQLList(exports.GraphQLOneUserResponse));
